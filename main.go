@@ -1,71 +1,37 @@
+// Creates a webserver/unix socket that allows a Docker server to create RDMA
+// backed volumes.
 package main
 
 import (
-	"fmt"
-	"log"
+	"flag"
+	"strconv"
+
+	"github.com/Jacobingalls/docker-volume-rdma/driver"
 	"github.com/docker/go-plugins-helpers/volume"
+	"github.com/golang/glog"
 )
 
-type RDMAVolumeDriver struct {
+// Port to launch service on.
+var httpPort int
 
-}
-
-func (r RDMAVolumeDriver) Create(request volume.Request) volume.Response {
-	log.Println("Creating volume: " + request.Name)
-
-	return volume.Response{}
-}
-
-func (r RDMAVolumeDriver) List(request volume.Request) volume.Response {
-	log.Println("Listing volumes")
-
-	return volume.Response{}
-}
-
-func (r RDMAVolumeDriver) Get(request volume.Request) volume.Response {
-	log.Println("Getting volume: " + request.Name)
-
-	return volume.Response{}
-}
-
-func (r RDMAVolumeDriver) Remove(request volume.Request) volume.Response {
-	log.Println("Removing volume: " + request.Name)
-
-	return volume.Response{}
-}
-
-func (r RDMAVolumeDriver) Path(request volume.Request) volume.Response {
-	log.Println("Getting path of volume: " + request.Name)
-
-	return volume.Response{}
-}
-
-func (r RDMAVolumeDriver) Mount(request volume.MountRequest) volume.Response {
-	log.Println("Mounting volume: " + request.Name)
-
-	return volume.Response{}
-}
-
-func (r RDMAVolumeDriver) Unmount(request volume.UnmountRequest) volume.Response {
-	log.Println("Unmounting volume: " + request.Name)
-
-	return volume.Response{}
-}
-
-func (r RDMAVolumeDriver) Capabilities(request volume.Request) volume.Response {
-	log.Println("Listing capabilities")
-
-	var response volume.Response
-    response.Capabilities = volume.Capability{Scope: "local"}
-    return response
-}
-
+// Configure and start the docker volume plugin server.
 func main() {
-	fmt.Println("Starting...")
 
-	driver := RDMAVolumeDriver{}
+	// Configure application flags.
+	flag.IntVar(&httpPort, "port", 8080, "tcp/ip port to serve volume driver on")
+
+	// Parse flags as glog needs the flags to be solifified before starting.
+	flag.Parse()
+
+	// Convert port to string, and print startup message.
+	port := strconv.Itoa(httpPort);
+	glog.Info("Running! http://localhost:" + port)
+
+	// Create and begin serving volume driver on tcp/ip port, httpPort.
+	driver := driver.NewRDMAVolumeDriver()
 	h := volume.NewHandler(driver)
-	err := h.ServeTCP("test_volume", ":8080", nil)
+	err := h.ServeTCP("test_volume", ":" + port, nil)
 
-	fmt.Println(err)
+	// Log any error that may have occured.
+	glog.Fatal(err)
 }

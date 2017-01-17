@@ -1,2 +1,3 @@
 #! /bin/bash -xe
-go run main.go
+cd $GOPATH/src/github.com/Jacobingalls/docker-volume-rdma
+go run main.go -logtostderr=true
