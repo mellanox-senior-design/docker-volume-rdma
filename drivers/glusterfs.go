@@ -1,8 +1,6 @@
 package drivers
 
 import (
-	"errors"
-
 	"github.com/docker/go-plugins-helpers/volume"
 )
 
