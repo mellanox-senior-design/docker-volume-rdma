@@ -6,7 +6,7 @@ import (
 	"flag"
 	"strconv"
 
-	"github.com/Jacobingalls/docker-volume-rdma/driver"
+	"github.com/Jacobingalls/docker-volume-rdma/drivers"
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/golang/glog"
 )
@@ -24,13 +24,14 @@ func main() {
 	flag.Parse()
 
 	// Convert port to string, and print startup message.
-	port := strconv.Itoa(httpPort);
+	port := strconv.Itoa(httpPort)
 	glog.Info("Running! http://localhost:" + port)
 
 	// Create and begin serving volume driver on tcp/ip port, httpPort.
-	driver := driver.NewRDMAVolumeDriver()
+	sc := drivers.NewGlusterStorageController()
+	driver := drivers.NewRDMAVolumeDriver(sc)
 	h := volume.NewHandler(driver)
-	err := h.ServeTCP("test_volume", ":" + port, nil)
+	err := h.ServeTCP("test_volume", ":"+port, nil)
 
 	// Log any error that may have occured.
 	glog.Fatal(err)
