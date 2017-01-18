@@ -3,7 +3,7 @@
 
 This volume plugin aims to add an RDMA-enabled storage backend to Docker Volumes.
 
-> Keystone Project, 2017, [UT Austin][UT], Sponsored by [Mellanox][Mellanox]
+> Capstone Project, 2017, [UT Austin][UT], Sponsored by [Mellanox][Mellanox]
 
 [How to develop for docker-volume-plugin][develop]
 
