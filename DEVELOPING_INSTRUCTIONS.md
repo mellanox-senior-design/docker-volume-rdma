@@ -80,6 +80,12 @@ go get ./...
 
 ## Running the Volume Driver
 
+If you are running the code from a machine that is not running a docker engine locally, you will need to make the `/etc/docker` folder.
+```bash
+sudo mkdir -p /etc/docker
+sudo chmod -R 777 /etc/docker
+```
+
 *Start the server*
 ```bash
 ./run.sh
