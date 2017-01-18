@@ -20,7 +20,7 @@ func main() {
 	// Configure application flags.
 	flag.IntVar(&httpPort, "port", 8080, "tcp/ip port to serve volume driver on")
 
-	// Parse flags as glog needs the flags to be solifified before starting.
+	// Parse flags as glog needs the flags to be solidified before starting.
 	flag.Parse()
 
 	// Convert port to string, and print startup message.
@@ -33,6 +33,6 @@ func main() {
 	h := volume.NewHandler(driver)
 	err := h.ServeTCP("test_volume", ":"+port, nil)
 
-	// Log any error that may have occured.
+	// Log any error that may have occurred.
 	glog.Fatal(err)
 }

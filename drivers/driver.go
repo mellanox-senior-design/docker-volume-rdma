@@ -65,12 +65,11 @@ func (r RDMAVolumeDriver) Create(request volume.Request) volume.Response {
 	var errString string
 	if err != nil {
 		errString = err.Error()
-		glog.Error("Error: " + errString + "! Encountered while removing a volume: " + request.Name)
+		glog.Error("Error: " + errString + "! Encountered while creating a volume: " + request.Name)
 	}
 
 	// Construct and return a response using the docker library.
 	var response volume.Response
-	// response.Volumes = vols
 	response.Err = errString
 	return response
 }
@@ -94,7 +93,7 @@ func (r RDMAVolumeDriver) List(request volume.Request) volume.Response {
 	var errString string
 	if err != nil {
 		errString = err.Error()
-		glog.Error("Error: " + errString + "! Encountered while removing a volume: " + request.Name)
+		glog.Error("Error: " + errString + "! Encountered while listing the volumes")
 	}
 
 	// Construct and return a response using the docker library.

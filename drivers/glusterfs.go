@@ -1,6 +1,10 @@
 package drivers
 
-import "github.com/docker/go-plugins-helpers/volume"
+import (
+	"errors"
+
+	"github.com/docker/go-plugins-helpers/volume"
+)
 
 type GlusterStorageController struct {
 }
@@ -9,7 +13,6 @@ func NewGlusterStorageController() GlusterStorageController {
 	return GlusterStorageController{}
 }
 
-// Create blah
 func (g GlusterStorageController) Create(volumeName string, opts map[string]string) error {
 	return nil
 }
