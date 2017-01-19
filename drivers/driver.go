@@ -14,6 +14,9 @@ type RDMAVolumeDriver struct {
 
 // RDMAStorageController interface allowing Storage Controllers to create, mounte, remove, ect. volumes on a host.
 type RDMAStorageController interface {
+	Connect() error
+	Disconnect() error
+
 	// Mount a volume and mark that ID is using it, returning Mountpoint and error (nil if no error).
 	Mount(volumeName string, id string) (string, error)
 
@@ -30,6 +33,38 @@ func (r RDMAVolumeDriver) validateOrCrash() {
 	if r.StorageController == nil {
 		glog.Fatal("StorageController is nil! Please configure the StorageController in the RDMAVolumeDriver.")
 	}
+}
+
+// Connect to both the volume driver and the storage controller
+func (r RDMAVolumeDriver) Connect() error {
+	var err error
+	err = r.VolumeDatabase.Connect()
+	if err != nil {
+		return err
+	}
+
+	err = r.StorageController.Connect()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Disconnect from both the volume driver and the storage controller
+func (r RDMAVolumeDriver) Disconnect() error {
+	var err error
+	err = r.VolumeDatabase.Disconnect()
+	if err != nil {
+		return err
+	}
+
+	err = r.StorageController.Disconnect()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Create a new volume with name and options.

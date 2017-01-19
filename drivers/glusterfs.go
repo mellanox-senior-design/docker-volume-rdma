@@ -7,6 +7,14 @@ func NewGlusterStorageController() GlusterStorageController {
 	return GlusterStorageController{}
 }
 
+func (g GlusterStorageController) Connect() error {
+	return nil
+}
+
+func (g GlusterStorageController) Disconnect() error {
+	return nil
+}
+
 func (g GlusterStorageController) Path(volumeName string) (string, error) {
 	return "", nil
 }
