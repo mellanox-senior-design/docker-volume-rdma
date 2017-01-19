@@ -19,7 +19,7 @@ func NewInMemoryVolumeDatabase() InMemoryVolumeDatabase {
 ********************************************************************************
 *                                                                              *
 *                                WARNING!!!                                    *
-*                        DO NOT USE IN PRODUCTION!                             *
+*              DO NOT USE the "In-Memory Driver" IN PRODUCTION!                *
 *                                                                              *
 *        You are currently using the In-Memory Volume Database Driver,         *
 *        it is completely ephemeral and should only be used for testing        *

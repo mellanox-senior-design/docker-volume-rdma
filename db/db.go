@@ -2,6 +2,7 @@ package db
 
 import "github.com/docker/go-plugins-helpers/volume"
 
+// VolumeDatabase interface describes a connection to a database that is capable of keeping track of volumes and mounts
 type VolumeDatabase interface {
 	Connect() error
 	Disconnect() error
