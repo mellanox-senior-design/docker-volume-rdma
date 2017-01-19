@@ -1,6 +1,7 @@
 package drivers
 
 import (
+	"github.com/Jacobingalls/docker-volume-rdma/db"
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/golang/glog"
 )
@@ -8,26 +9,11 @@ import (
 // RDMAVolumeDriver holds all the information pertaining to a RDMA Volume Driver.
 type RDMAVolumeDriver struct {
 	StorageController RDMAStorageController
+	VolumeDatabase    db.VolumeDatabase
 }
 
 // RDMAStorageController interface allowing Storage Controllers to create, mounte, remove, ect. volumes on a host.
 type RDMAStorageController interface {
-
-	// Create a volume with name and opts, returning error (nil if no error).
-	Create(volumeName string, opts map[string]string) error
-
-	// Return the list of all volumes, returning the list of volumes and error (nil if no error).
-	List() ([]*volume.Volume, error)
-
-	// Get information about a volume by name, returning the volume and error (nil if no error).
-	Get(volumeName string) (*volume.Volume, error)
-
-	// Remove/Delete volume, returning an error (nil if no error).
-	Remove(volumeName string) error
-
-	// Get the mounted path of a volume, returning the Mountpoint and error (nil if no error).
-	Path(volumeName string) (string, error)
-
 	// Mount a volume and mark that ID is using it, returning Mountpoint and error (nil if no error).
 	Mount(volumeName string, id string) (string, error)
 
@@ -36,8 +22,8 @@ type RDMAStorageController interface {
 }
 
 // NewRDMAVolumeDriver constructs a new RDMAVolumeDriver.
-func NewRDMAVolumeDriver(sc RDMAStorageController) RDMAVolumeDriver {
-	return RDMAVolumeDriver{sc}
+func NewRDMAVolumeDriver(sc RDMAStorageController, vd db.VolumeDatabase) RDMAVolumeDriver {
+	return RDMAVolumeDriver{sc, vd}
 }
 
 func (r RDMAVolumeDriver) validateOrCrash() {
@@ -58,8 +44,8 @@ func (r RDMAVolumeDriver) Create(request volume.Request) volume.Response {
 	// Ensure the r is properly confiured
 	r.validateOrCrash()
 
-	// Pass the create request to the storage controller.
-	err := r.StorageController.Create(request.Name, request.Options)
+	// Pass the create request to the volume database.
+	err := r.VolumeDatabase.Create(request.Name, request.Options)
 
 	// If there was an error, log.
 	var errString string
@@ -86,8 +72,8 @@ func (r RDMAVolumeDriver) List(request volume.Request) volume.Response {
 	// Ensure the r is properly confiured
 	r.validateOrCrash()
 
-	// Pass the list request to the storage controller.
-	vols, err := r.StorageController.List()
+	// Pass the list request to the volume database.
+	vols, err := r.VolumeDatabase.List()
 
 	// If there was an error, log.
 	var errString string
@@ -115,8 +101,8 @@ func (r RDMAVolumeDriver) Get(request volume.Request) volume.Response {
 	// Ensure the r is properly confiured
 	r.validateOrCrash()
 
-	// Pass the get request to the storage controller.
-	vol, err := r.StorageController.Get(request.Name)
+	// Pass the get request to the volume database.
+	vol, err := r.VolumeDatabase.Get(request.Name)
 
 	// If there was an error, log.
 	var errString string
@@ -144,8 +130,10 @@ func (r RDMAVolumeDriver) Remove(request volume.Request) volume.Response {
 	// Ensure the r is properly confiured
 	r.validateOrCrash()
 
-	// Pass the remove request to the storage controller.
-	err := r.StorageController.Remove(request.Name)
+	// TODO unmount all mounts before remove
+
+	// Pass the remove request to the volume database.
+	err := r.VolumeDatabase.Remove(request.Name)
 
 	// If there was an error, log.
 	var errString string
@@ -176,7 +164,7 @@ func (r RDMAVolumeDriver) Path(request volume.Request) volume.Response {
 	r.validateOrCrash()
 
 	// Pass the path request to the storage controller.
-	mountpoint, err := r.StorageController.Path(request.Name)
+	mountpoint, err := r.VolumeDatabase.Path(request.Name)
 
 	// If there was an error, log.
 	var errString string
@@ -211,8 +199,11 @@ func (r RDMAVolumeDriver) Mount(request volume.MountRequest) volume.Response {
 	// Ensure the r is properly confiured
 	r.validateOrCrash()
 
+	// Pass the mount request to the volume database.
+	mountpoint, err := r.VolumeDatabase.Mount(request.Name, request.ID)
+
 	// Pass the mount request to the storage controller.
-	mountpoint, err := r.StorageController.Mount(request.Name, request.ID)
+	// TODO mountpoint, err := r.StorageController.Mount(request.Name, request.ID)
 
 	// If there was an error, log.
 	var errString string
@@ -244,13 +235,16 @@ func (r RDMAVolumeDriver) Unmount(request volume.UnmountRequest) volume.Response
 
 	r.validateOrCrash()
 
+	// Pass the unmount request to the volume database.
+	err := r.VolumeDatabase.Unmount(request.Name, request.ID)
+
 	// Pass the unmount request to the storage controller.
-	err := r.StorageController.Unmount(request.Name, request.ID)
+	// TODO err := r.StorageController.Unmount(request.Name, request.ID)
 
 	// If there was an error, log.
 	if err != nil {
 		errString = err.Error()
-		glog.Error("Error: " + errString + "! Encountered while unmounting volume: " + request.Name + " and ID: " + request.ID)
+		glog.Error("Error: " + errString + " Encountered while unmounting volume: " + request.Name + " and ID: " + request.ID)
 	}
 
 	// Construct and return a response using the docker library.
