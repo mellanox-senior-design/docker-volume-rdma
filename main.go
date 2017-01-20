@@ -6,7 +6,9 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"github.com/Jacobingalls/docker-volume-rdma/db"
 	"github.com/Jacobingalls/docker-volume-rdma/drivers"
@@ -49,6 +51,16 @@ func main() {
 	driver := drivers.NewRDMAVolumeDriver(sc, vd)
 	driver.Connect()
 	defer driver.Disconnect()
+
+	// Handle SIGINT gracefully
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT)
+	go func() {
+		<-c
+		glog.Info("Exiting ...")
+		driver.Disconnect()
+		os.Exit(1)
+	}()
 
 	glog.Info("Running! http://localhost:" + port)
 	h := volume.NewHandler(driver)
