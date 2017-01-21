@@ -15,14 +15,14 @@ func (g GlusterStorageController) Disconnect() error {
 	return nil
 }
 
-func (g GlusterStorageController) Path(volumeName string) (string, error) {
+func (g GlusterStorageController) Mount(volumeName string) (string, error) {
 	return "", nil
 }
 
-func (g GlusterStorageController) Mount(volumeName string, id string) (string, error) {
-	return "/some/path/here", nil
+func (g GlusterStorageController) Unmount(volumeName string) error {
+	return nil
 }
 
-func (g GlusterStorageController) Unmount(volumeName string, id string) error {
+func (g GlusterStorageController) Delete(volumeName string) error {
 	return nil
 }

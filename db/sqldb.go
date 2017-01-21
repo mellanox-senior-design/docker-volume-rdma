@@ -337,35 +337,35 @@ func (s SQLVolumeDatabase) Remove(volumeName string) error {
 }
 
 // Mount the volume with name and id
-func (s SQLVolumeDatabase) Mount(volumeName string, id string) (string, error) {
+func (s SQLVolumeDatabase) Mount(volumeName string, id string, mointpoint string) error {
 	mounts, _, err := s.listMounts(volumeName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	vol, volid, err := s.getVolumeByName(volumeName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Begin transaction to the database
 	tx, err := sqlDB.Begin()
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if vol.Mountpoint == "" {
-		vol.Mountpoint = "/etc/docker/mounts/" + volumeName
+		vol.Mountpoint = mointpoint
 		stmtUp, errUp := tx.Prepare(s.DBQueries.volumesUpdateMountpointSQL)
 		if errUp != nil {
-			return "", errUp
+			return errUp
 		}
 		defer stmtUp.Close()
 
 		_, errUp = stmtUp.Exec(vol.Mountpoint, volid)
 		if errUp != nil {
 			tx.Rollback()
-			return "", errUp
+			return errUp
 		}
 	}
 
@@ -384,18 +384,18 @@ func (s SQLVolumeDatabase) Mount(volumeName string, id string) (string, error) {
 
 	stmt, err := tx.Prepare(q)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(newCount, volid, id)
 	if err != nil {
 		tx.Rollback()
-		return "", err
+		return err
 	}
 
 	// Commit the change
-	return vol.Mountpoint, tx.Commit()
+	return tx.Commit()
 }
 
 // Unmount volume with name and id
