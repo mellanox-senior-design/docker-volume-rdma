@@ -113,9 +113,17 @@ func (i InMemoryVolumeDatabase) Remove(volumeName string) error {
 
 	_, exists = i.mounts[volumeName]
 	if exists {
-		delete(i.mounts, volumeName)
+		sum := 0
+		for _, v := range i.mounts[volumeName] {
+			sum += v
+		}
+
+		if sum != 0 {
+			return errors.New("Cannot remove volume as it is still being requested.")
+		}
 	}
 
+	delete(i.mounts, volumeName)
 	return nil
 }
 

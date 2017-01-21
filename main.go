@@ -20,12 +20,22 @@ import (
 var httpPort int
 var volumeDatabaseDriver string
 var volumeDatabasePath string
+var volumeDatabaseHost string
+var volumeDatabaseUsername string
+var volumeDatabasePassword string
+var volumeDatabaseSchema string
 
 func init() {
 	// Configure application flags.
 	flag.IntVar(&httpPort, "port", 8080, "tcp/ip port to serve volume driver on")
-	flag.StringVar(&volumeDatabaseDriver, "db", "sqlite", "set the database backend used to store volume metadata: [sqlite, in-memory]")
+
+	flag.StringVar(&volumeDatabaseDriver, "db", "sqlite", "set the database backend used to store volume metadata: [sqlite, mysql, in-memory]")
 	flag.StringVar(&volumeDatabasePath, "dbpath", "", "set the database storage path")
+
+	flag.StringVar(&volumeDatabaseHost, "dbhost", "", "set the database host (default is '' or localhost:3306)")
+	flag.StringVar(&volumeDatabaseUsername, "dbuser", "", "set the database username (default is root)")
+	flag.StringVar(&volumeDatabasePassword, "dbpass", "", "set the database password (optional)")
+	flag.StringVar(&volumeDatabaseSchema, "dbschema", "", "set the database schema (required)")
 }
 
 // Configure and start the docker volume plugin server.
@@ -74,30 +84,39 @@ func main() {
 func GetDatabaseConnection() (db.VolumeDatabase, error) {
 	switch volumeDatabaseDriver {
 	case "in-memory":
-		if volumeDatabasePath != "" {
-			glog.Fatal("Invalid -dbpath, in-memory does not use -dbpath.")
-		}
+		validateDatabaseFlags(true, true, false, false, false, false)
 		return db.NewInMemoryVolumeDatabase(), nil
 
 	case "sqlite":
-		// If the database path was not set, then we are resposible for managing it.
-		if volumeDatabasePath == "" {
-			volumeDatabasePath = "./sqlite.db/db"
-			glog.Info("Defaulting -dbpath=" + volumeDatabasePath)
+		validateDatabaseFlags(false, true, false, false, false, false)
+		return db.NewSQLiteVolumeDatabase(volumeDatabasePath), nil
 
-			// Create the enclosing dir for the database, if it does not exist.
-			_, err := os.Open("./sqlite.db")
-			if os.IsNotExist(err) {
-				err := os.Mkdir("./sqlite.db", 0755)
-				if err != nil {
-					glog.Fatal("Unable to create ./sqlite.db folder.")
-				}
-			}
-		}
-
-		return db.NewSqliteVolumeDatabase(volumeDatabasePath), nil
+	case "mysql":
+		validateDatabaseFlags(false, false, true, true, true, true)
+		return db.NewMySQLVolumeDatabase(volumeDatabaseHost, volumeDatabaseUsername, volumeDatabasePassword, volumeDatabaseSchema), nil
 
 	default:
-		return nil, errors.New("Unsupported database, please choose sqlite or in-memory.")
+		return nil, errors.New("Unsupported database, please choose sqlite, mysql, or in-memory.")
+	}
+}
+
+func validateDatabaseFlags(fatal bool, path bool, host bool, username bool, password bool, schema bool) {
+
+	var errors bool
+	noteErrorFunc := func(name string, value string, used bool) {
+		if !used && value != "" {
+			glog.Warning("Volume Driver: ", volumeDatabaseDriver, " does not support ", name, ".")
+			errors = true
+		}
+	}
+
+	noteErrorFunc("-dbpath", volumeDatabasePath, path)
+	noteErrorFunc("-dbhost", volumeDatabaseHost, host)
+	noteErrorFunc("-dbuser", volumeDatabaseUsername, username)
+	noteErrorFunc("-dbpass", volumeDatabasePassword, password)
+	noteErrorFunc("-dbschema", volumeDatabaseSchema, schema)
+
+	if errors && fatal {
+		glog.Fatal("Invalid flag(s) were passed, are you using the correct volume driver?")
 	}
 }
