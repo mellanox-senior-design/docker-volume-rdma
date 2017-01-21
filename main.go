@@ -18,6 +18,8 @@ import (
 
 // Port to launch service on.
 var httpPort int
+
+// Volume Flags
 var volumeDatabaseDriver string
 var volumeDatabasePath string
 var volumeDatabaseHost string
@@ -25,17 +27,25 @@ var volumeDatabaseUsername string
 var volumeDatabasePassword string
 var volumeDatabaseSchema string
 
+// Storage Flags
+var storageControllerDriver string
+var storageControllerPath string
+
 func init() {
 	// Configure application flags.
 	flag.IntVar(&httpPort, "port", 8080, "tcp/ip port to serve volume driver on")
 
+	// Volume Database Flags
 	flag.StringVar(&volumeDatabaseDriver, "db", "sqlite", "set the database backend used to store volume metadata: [sqlite, mysql, in-memory]")
 	flag.StringVar(&volumeDatabasePath, "dbpath", "", "set the database storage path")
-
 	flag.StringVar(&volumeDatabaseHost, "dbhost", "", "set the database host (default is '' or localhost:3306)")
 	flag.StringVar(&volumeDatabaseUsername, "dbuser", "", "set the database username (default is root)")
 	flag.StringVar(&volumeDatabasePassword, "dbpass", "", "set the database password (optional)")
 	flag.StringVar(&volumeDatabaseSchema, "dbschema", "", "set the database schema (required)")
+
+	// Storage Controller Flags
+	flag.StringVar(&storageControllerDriver, "sc", "glusterfs", "set the storage backend used to store volume data: [glusterfs, on-disk]")
+	flag.StringVar(&storageControllerPath, "scpath", "", "set the storage path used to know where to put the volumes on the host")
 }
 
 // Configure and start the docker volume plugin server.
@@ -48,13 +58,16 @@ func main() {
 	port := strconv.Itoa(httpPort)
 
 	// Create and begin serving volume driver on tcp/ip port, httpPort.
-	vd, dberr := GetDatabaseConnection()
+	vd, dberr := getDatabaseConnection()
 	if dberr != nil {
 		glog.Fatal(dberr)
 	}
 
 	// Configure Storage Controller
-	sc := drivers.NewGlusterStorageController()
+	sc, scerr := getStorageConnection()
+	if scerr != nil {
+		glog.Fatal(scerr)
+	}
 
 	// Print startup message and start server
 	glog.Info("Connecting to services ...")
@@ -81,7 +94,8 @@ func main() {
 }
 
 // GetDatabaseConnection returns the database connection that was requested on the command line.
-func GetDatabaseConnection() (db.VolumeDatabase, error) {
+func getDatabaseConnection() (db.VolumeDatabase, error) {
+	glog.Info("Attempting to use the ", volumeDatabaseDriver, " volume driver.")
 	switch volumeDatabaseDriver {
 	case "in-memory":
 		validateDatabaseFlags(true, true, false, false, false, false)
@@ -118,5 +132,39 @@ func validateDatabaseFlags(fatal bool, path bool, host bool, username bool, pass
 
 	if errors && fatal {
 		glog.Fatal("Invalid flag(s) were passed, are you using the correct volume driver?")
+	}
+}
+
+func getStorageConnection() (drivers.StorageController, error) {
+	glog.Info("Attempting to use the ", storageControllerDriver, " storage controller.")
+
+	switch storageControllerDriver {
+	case "on-disk":
+		validateStorageFlags(true, false)
+		return drivers.NewOnDiskStorageController(storageControllerPath), nil
+
+	case "glusterfs":
+		validateStorageFlags(false, true)
+		return drivers.NewGlusterStorageController(), nil
+
+	default:
+		return nil, errors.New("Unsupported storage controller, please choose glusterfs or on-disk.")
+	}
+}
+
+func validateStorageFlags(fatal bool, path bool) {
+
+	var errors bool
+	noteErrorFunc := func(name string, value string, used bool) {
+		if !used && value != "" {
+			glog.Warning("Storage Controller: ", volumeDatabaseDriver, " does not support ", name, ".")
+			errors = true
+		}
+	}
+
+	noteErrorFunc("-dbpath", storageControllerPath, path)
+
+	if errors && fatal {
+		glog.Fatal("Invalid flag(s) were passed, are you using the correct storage controller?")
 	}
 }
