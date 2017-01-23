@@ -1,9 +1,9 @@
 package drivers
 
 import (
-	"github.com/Jacobingalls/docker-volume-rdma/db"
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/golang/glog"
+	"github.com/mellanox-senior-design/docker-volume-rdma/db"
 )
 
 // RDMAVolumeDriver holds all the information pertaining to a RDMA Volume Driver.
@@ -76,7 +76,7 @@ func (r RDMAVolumeDriver) Disconnect() error {
 func (r RDMAVolumeDriver) Create(request volume.Request) volume.Response {
 	glog.Info("Creating volume: " + request.Name)
 
-	// Ensure the r is properly confiured
+	// Ensure the r is properly configured
 	r.validateOrCrash()
 
 	// Pass the create request to the volume database.

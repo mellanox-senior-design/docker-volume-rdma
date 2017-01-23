@@ -1,3 +1,8 @@
 #! /bin/bash -xe
-cd $GOPATH/src/github.com/Jacobingalls/docker-volume-rdma
+if [ -z "$GOPATH" ]; then
+    echo 'GOPATH is not set' >&2
+    exit 2
+fi
+
+cd $GOPATH/src/github.com/mellanox-senior-design/docker-volume-rdma
 go run main.go -logtostderr=true $@
