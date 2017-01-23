@@ -28,8 +28,8 @@ type StorageController interface {
 }
 
 // NewRDMAVolumeDriver constructs a new RDMAVolumeDriver.
-func NewRDMAVolumeDriver(sc StorageController, vd db.VolumeDatabase) RDMAVolumeDriver {
-	return RDMAVolumeDriver{sc, vd}
+func NewRDMAVolumeDriver(storageController StorageController, volumeDatabase db.VolumeDatabase) RDMAVolumeDriver {
+	return RDMAVolumeDriver{storageController, volumeDatabase}
 }
 
 func (r RDMAVolumeDriver) validateOrCrash() {

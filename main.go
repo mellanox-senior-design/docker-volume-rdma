@@ -58,20 +58,20 @@ func main() {
 	port := strconv.Itoa(httpPort)
 
 	// Create and begin serving volume driver on tcp/ip port, httpPort.
-	vd, dberr := getDatabaseConnection()
-	if dberr != nil {
-		glog.Fatal(dberr)
+	volumeDriver, err := getDatabaseConnection()
+	if err != nil {
+		glog.Fatal(err)
 	}
 
 	// Configure Storage Controller
-	sc, scerr := getStorageConnection()
-	if scerr != nil {
-		glog.Fatal(scerr)
+	storageController, err := getStorageConnection()
+	if err != nil {
+		glog.Fatal(err)
 	}
 
 	// Print startup message and start server
 	glog.Info("Connecting to services ...")
-	driver := drivers.NewRDMAVolumeDriver(sc, vd)
+	driver := drivers.NewRDMAVolumeDriver(storageController, volumeDriver)
 	driver.Connect()
 	defer driver.Disconnect()
 
@@ -86,8 +86,8 @@ func main() {
 	}()
 
 	glog.Info("Running! http://localhost:" + port)
-	h := volume.NewHandler(driver)
-	err := h.ServeTCP("test_volume", ":"+port, nil)
+	handler := volume.NewHandler(driver)
+	err = handler.ServeTCP("test_volume", ":"+port, nil)
 
 	// Log any error that may have occurred.
 	glog.Fatal(err)
