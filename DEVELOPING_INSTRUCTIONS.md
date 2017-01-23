@@ -68,9 +68,9 @@ go run main.go
 
 *Checking out*
 ```bash
-mkdir -p $GOPATH/src/github.com/Jacobingalls
-cd $GOPATH/src/github.com/Jacobingalls
-git clone git@github.com:Jacobingalls/docker-volume-rdma.git
+mkdir -p $GOPATH/src/github.com/mellanox-senior-design
+cd $GOPATH/src/github.com/mellanox-senior-design
+git clone git@github.com:mellanox-senior-design/docker-volume-rdma.git
 ```
 
 *Downloading required libraries*
@@ -91,7 +91,7 @@ sudo chmod -R 777 /etc/docker
 ./run.sh
 
 # or manually
-cd $GOPATH/src/github.com/Jacobingalls # This is here incase that you are in a subdirectory or have a symlink to the $GOPATH folder
+cd $GOPATH/src/github.com/mellanox-senior-design # This is here incase that you are in a subdirectory or have a symlink to the $GOPATH folder
 go run main.go -logtostderr=true
 ```
 
