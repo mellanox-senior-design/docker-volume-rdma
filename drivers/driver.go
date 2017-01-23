@@ -76,7 +76,7 @@ func (r RDMAVolumeDriver) Disconnect() error {
 func (r RDMAVolumeDriver) Create(request volume.Request) volume.Response {
 	glog.Info("Creating volume: " + request.Name)
 
-	// Ensure the r is properly confiured
+	// Ensure the r is properly configured
 	r.validateOrCrash()
 
 	// Pass the create request to the volume database.

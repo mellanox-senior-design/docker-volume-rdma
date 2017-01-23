@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/Jacobingalls/docker-volume-rdma/db"
-	"github.com/Jacobingalls/docker-volume-rdma/drivers"
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/golang/glog"
+	"github.com/mellanox-senior-design/docker-volume-rdma/db"
+	"github.com/mellanox-senior-design/docker-volume-rdma/drivers"
 )
 
 // Port to launch service on.
