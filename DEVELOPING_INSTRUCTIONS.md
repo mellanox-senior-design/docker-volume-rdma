@@ -65,20 +65,43 @@ go run main.go
 ```
 
 ### Download REPO
-We have two options here. Either we can checkout the code directly into the `$GOPATH/src` folder or we can create a symlink to the code.
 
 *Checking out*
 ```bash
-cd $GOPATH/src #or the path you actually want to put this
-git clone git@github.com:Jacobingalls/EE464K-RDMA-docker-volume-server.git
+mkdir -p $GOPATH/src/github.com/Jacobingalls
+cd $GOPATH/src/github.com/Jacobingalls
+git clone git@github.com:Jacobingalls/docker-volume-rdma.git
 ```
 
-*Creating symlink*
+*Downloading required libraries*
 ```bash
-# If you did not put the project in your $GOPATH, create a symbolic link to it.
-if [ ! -d "$GOPATH/src/E464K-RDMA-docker-volume-server" ]; then
-    ln -s E464K-RDMA-docker-volume-server $GOPATH/src/E464K-RDMA-docker-volume-server
-fi
+go get ./...
 ```
+
+## Running the Volume Driver
+
+If you are running the code from a machine that is not running a docker engine locally, you will need to make the `/etc/docker` folder.
+```bash
+sudo mkdir -p /etc/docker
+sudo chmod -R 777 /etc/docker
+```
+
+*Start the server*
+```bash
+./run.sh
+
+# or manually
+cd $GOPATH/src/github.com/Jacobingalls # This is here incase that you are in a subdirectory or have a symlink to the $GOPATH folder
+go run main.go -logtostderr=true
+```
+
+*Access the server*
+```bash
+curl -X "POST" "http://localhost:8080/VolumeDriver.Create" \
+     -H "Content-Type: application/json" \
+     -d $'{"Name": "volume_name", "Opts": {}}'
+```
+> NOTE: All endpoints use the POST method!
+Accessing the server via a web browser will never return a nice result.
 
 [brew]: http://brew.sh
