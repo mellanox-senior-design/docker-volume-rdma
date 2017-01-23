@@ -120,9 +120,9 @@ func (d OnDiskStorageController) Delete(volumeName string) error {
 	}
 
 	_, err = os.Open(pathMounted)
-	if err != nil {
-		return err
+	if err == nil {
+		return os.Remove(pathMounted)
 	}
 
-	return os.Remove(pathMounted)
+	return nil
 }
