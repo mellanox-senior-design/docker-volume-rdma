@@ -140,11 +140,11 @@ func getStorageConnection() (drivers.StorageController, error) {
 
 	switch storageControllerDriver {
 	case "on-disk":
-		validateStorageFlags(true, false)
+		validateStorageFlags(true, true)
 		return drivers.NewOnDiskStorageController(storageControllerPath), nil
 
 	case "glusterfs":
-		validateStorageFlags(false, true)
+		validateStorageFlags(false, false)
 		return drivers.NewGlusterStorageController(), nil
 
 	default:
