@@ -37,6 +37,8 @@ func NewOnDiskStorageController(path string) OnDiskStorageController {
 		path = "/etc/docker/mounts/"
 	}
 
+	glog.Info("Mount path: ", path)
+
 	_, err := os.Open(path)
 	if err != nil {
 		os.MkdirAll(path, 0755)
