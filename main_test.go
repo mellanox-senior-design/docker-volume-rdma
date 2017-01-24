@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Jacobingalls/docker-volume-rdma/db"
-	"github.com/Jacobingalls/docker-volume-rdma/drivers"
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/docker/go-plugins-helpers/volume"
+	"github.com/mellanox-senior-design/docker-volume-rdma/db"
+	"github.com/mellanox-senior-design/docker-volume-rdma/drivers"
 )
 
 func configureTest(t *testing.T) (*drivers.RDMAVolumeDriver, *volume.Handler, string, string) {
