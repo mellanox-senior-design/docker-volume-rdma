@@ -107,7 +107,7 @@ func (d OnDiskStorageController) Unmount(volumeName string) error {
 		return err
 	}
 
-	return errors.New("Already unmounted.")
+	return errors.New("already unmounted")
 }
 
 // Delete a particular volume

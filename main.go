@@ -122,7 +122,7 @@ func getDatabaseConnection() (db.VolumeDatabase, error) {
 		return db.NewMySQLVolumeDatabase(volumeDatabaseHost, volumeDatabaseUsername, volumeDatabasePassword, volumeDatabaseSchema), nil
 
 	default:
-		return nil, errors.New("Unsupported database, please choose sqlite, mysql, or in-memory.")
+		return nil, errors.New("unsupported database, please choose sqlite, mysql, or in-memory")
 	}
 }
 
@@ -160,7 +160,7 @@ func getStorageConnection() (drivers.StorageController, error) {
 		return drivers.NewGlusterStorageController(), nil
 
 	default:
-		return nil, errors.New("Unsupported storage controller, please choose glusterfs or on-disk.")
+		return nil, errors.New("unsupported storage controller, please choose glusterfs or on-disk")
 	}
 }
 

@@ -55,12 +55,12 @@ func (i InMemoryVolumeDatabase) Create(volumeName string, options map[string]str
 	var exists bool
 	_, exists = i.volumes[volumeName]
 	if exists {
-		return errors.New("Volume already exists.")
+		return errors.New("volume already exists")
 	}
 
 	_, exists = i.mounts[volumeName]
 	if exists {
-		return errors.New("Volume already exists.")
+		return errors.New("volume already exists")
 	}
 
 	i.volumes[volumeName] = &volume.Volume{
@@ -86,7 +86,7 @@ func (i InMemoryVolumeDatabase) List() ([]*volume.Volume, error) {
 func (i InMemoryVolumeDatabase) Get(volumeName string) (*volume.Volume, error) {
 	vol, exists := i.volumes[volumeName]
 	if !exists {
-		return nil, errors.New("Volume does not exist.")
+		return nil, errors.New("volume does not exist")
 	}
 
 	return vol, nil
@@ -107,7 +107,7 @@ func (i InMemoryVolumeDatabase) Remove(volumeName string) error {
 	var exists bool
 	_, exists = i.volumes[volumeName]
 	if !exists {
-		return errors.New("Volume does not exit.")
+		return errors.New("volume does not exit")
 	}
 	delete(i.volumes, volumeName)
 
@@ -119,7 +119,7 @@ func (i InMemoryVolumeDatabase) Remove(volumeName string) error {
 		}
 
 		if sum != 0 {
-			return errors.New("Cannot remove volume as it is still being requested.")
+			return errors.New("cannot remove volume as it is still being requested")
 		}
 	}
 
@@ -168,16 +168,16 @@ func (i InMemoryVolumeDatabase) Unmount(volumeName string, id string) error {
 			if i.mounts[volumeName][id] > 0 {
 				i.mounts[volumeName][id]--
 			} else {
-				return errors.New("Volume exists, but was not mounted.")
+				return errors.New("volume exists, but was not mounted")
 			}
 		} else {
 			i.mounts[volumeName][id] = 0
-			return errors.New("Volume exists, but was not mounted.")
+			return errors.New("volume exists, but was not mounted")
 		}
 	} else {
 		i.mounts[volumeName] = map[string]int{}
 		i.mounts[volumeName][id] = 0
-		return errors.New("Volume exists, but was not mounted.")
+		return errors.New("volume exists, but was not mounted")
 	}
 
 	glog.Info(volumeName, " and id ", id, " is now has ", i.mounts[volumeName][id], " connections")

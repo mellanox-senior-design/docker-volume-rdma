@@ -128,7 +128,7 @@ func (s SQLVolumeDatabase) Create(volumeName string, options map[string]string) 
 
 	// Verify input.
 	if volumeName == "" {
-		return errors.New("Volume name cannot be empty.")
+		return errors.New("volume name cannot be empty")
 	}
 
 	// Begin transaction to the database
@@ -270,7 +270,7 @@ func (s SQLVolumeDatabase) getVolumeByName(volumeName string) (*volume.Volume, i
 
 	// Did we get any results?
 	if len(vols) == 0 {
-		return nil, 0, errors.New("Volume does not exist.")
+		return nil, 0, errors.New("volume does not exist")
 	}
 
 	return vols[0], ids[0], nil
@@ -294,7 +294,7 @@ func (s SQLVolumeDatabase) Remove(volumeName string) error {
 	}
 
 	if requests > 0 {
-		return errors.New("Volume cannot be removed as it still has active mount requests.")
+		return errors.New("volume cannot be removed as it still has active mount requests")
 	}
 
 	id, err := s.getVolumeIDByName(volumeName)
@@ -467,7 +467,7 @@ func (s SQLVolumeDatabase) Unmount(volumeName string, id string) error {
 		}
 	} else {
 		transaction.Rollback()
-		return errors.New("Volume + ID was not mounted.")
+		return errors.New("volume + ID was not mounted")
 	}
 
 	// Commit the change
