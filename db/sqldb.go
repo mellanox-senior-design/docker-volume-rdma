@@ -36,6 +36,7 @@ type VolumeDatabaseQueries struct {
 	mountsDeleteByVolumeIDAndRequesterSQL       string
 }
 
+// DefaultSQLQueries stores the default SQL functions for sqldbs to use.
 var DefaultSQLQueries = VolumeDatabaseQueries{
 	// Volumes SQL statments
 	volumesCreateTableSQL: `CREATE TABLE IF NOT EXISTS volumes (
@@ -63,6 +64,7 @@ var DefaultSQLQueries = VolumeDatabaseQueries{
 }
 
 // NewSQLVolumeDatabase creates a new SQLVolumeDatabase, saving the database at dbPath.
+// Overide default sql queries by passing a VolumeDatabaseQueries object. Non-nil fields will be be used instead of the defaults.
 func NewSQLVolumeDatabase(dbType string, dbDataSource string, dbQueries VolumeDatabaseQueries) SQLVolumeDatabase {
 
 	queries := dbQueries.merge(DefaultSQLQueries)
@@ -130,28 +132,28 @@ func (s SQLVolumeDatabase) Create(volumeName string, options map[string]string) 
 	}
 
 	// Begin transaction to the database
-	tx, err := sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
 		return err
 	}
 
 	// Prepare the query
-	stmt, err := tx.Prepare(s.DBQueries.volumesInsertSQL)
+	preparedStatement, err := transaction.Prepare(s.DBQueries.volumesInsertSQL)
 	if err != nil {
-		tx.Rollback()
+		transaction.Rollback()
 		return err
 	}
-	defer stmt.Close()
+	defer preparedStatement.Close()
 
 	// Actually make the insert
-	_, err = stmt.Exec(volumeName)
+	_, err = preparedStatement.Exec(volumeName)
 	if err != nil {
-		tx.Rollback()
+		transaction.Rollback()
 		return err
 	}
 
 	// Commit the change
-	return tx.Commit()
+	return transaction.Commit()
 }
 
 // List all volumes
@@ -218,14 +220,14 @@ func (s SQLVolumeDatabase) getVolumeByName(volumeName string) (*volume.Volume, i
 	s.VerifyOrCrash()
 
 	// Prepare the query
-	stmt, err := sqlDB.Prepare(s.DBQueries.volumesGetVolumeByNameSQL)
+	preparedStatement, err := sqlDB.Prepare(s.DBQueries.volumesGetVolumeByNameSQL)
 	if err != nil {
 		return nil, 0, err
 	}
-	defer stmt.Close()
+	defer preparedStatement.Close()
 
 	// Query the database about the volumes
-	rows, err := stmt.Query(volumeName)
+	rows, err := preparedStatement.Query(volumeName)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -301,101 +303,102 @@ func (s SQLVolumeDatabase) Remove(volumeName string) error {
 	}
 
 	// Begin transaction to the database
-	tx, err := sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
 		return err
 	}
 
 	// Prepare the queries
-	stmtM, err := tx.Prepare(s.DBQueries.mountsDeleteByVolumeIDSQL)
+	mountsPreparedStatement, err := transaction.Prepare(s.DBQueries.mountsDeleteByVolumeIDSQL)
 	if err != nil {
 		return err
 	}
-	defer stmtM.Close()
+	defer mountsPreparedStatement.Close()
 
-	stmtV, err := tx.Prepare(s.DBQueries.volumesDeleteByIDSQL)
+	volumesPreparedStatement, err := transaction.Prepare(s.DBQueries.volumesDeleteByIDSQL)
 	if err != nil {
 		return err
 	}
-	defer stmtV.Close()
+	defer volumesPreparedStatement.Close()
 
 	// Actually make the deletes
-	_, err = stmtM.Exec(id)
+	_, err = mountsPreparedStatement.Exec(id)
 	if err != nil {
-		tx.Rollback()
+		transaction.Rollback()
 		return err
 	}
 
-	_, err = stmtV.Exec(id)
+	_, err = volumesPreparedStatement.Exec(id)
 	if err != nil {
-		tx.Rollback()
+		transaction.Rollback()
 		return err
 	}
 
 	// Commit the change
-	return tx.Commit()
+	return transaction.Commit()
 }
 
 // Mount the volume with name and id
-func (s SQLVolumeDatabase) Mount(volumeName string, id string) (string, error) {
+func (s SQLVolumeDatabase) Mount(volumeName string, id string, mointpoint string) error {
 	mounts, _, err := s.listMounts(volumeName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	vol, volid, err := s.getVolumeByName(volumeName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Begin transaction to the database
-	tx, err := sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if vol.Mountpoint == "" {
-		vol.Mountpoint = "/etc/docker/mounts/" + volumeName
-		stmtUp, errUp := tx.Prepare(s.DBQueries.volumesUpdateMountpointSQL)
+		vol.Mountpoint = mointpoint
+		volumeMountPointPreparedStatement, errUp := transaction.Prepare(s.DBQueries.volumesUpdateMountpointSQL)
 		if errUp != nil {
-			return "", errUp
+			return errUp
 		}
-		defer stmtUp.Close()
+		defer volumeMountPointPreparedStatement.Close()
 
-		_, errUp = stmtUp.Exec(vol.Mountpoint, volid)
+		_, errUp = volumeMountPointPreparedStatement.Exec(vol.Mountpoint, volid)
 		if errUp != nil {
-			tx.Rollback()
-			return "", errUp
+			transaction.Rollback()
+			return errUp
 		}
 	}
 
 	var newCount int
-	var q string
-	number, exists := mounts[id]
+	var updateOrInsertQuery string
+	numberOfMounts, exists := mounts[id]
 	if exists {
 		// Need to update the value to number + 1
-		newCount = number + 1
-		q = s.DBQueries.mountsUpdateCountByVolumeIDAndRequesterSQL
+		newCount = numberOfMounts + 1
+		updateOrInsertQuery = s.DBQueries.mountsUpdateCountByVolumeIDAndRequesterSQL
 	} else {
 		// Need to insert
 		newCount = 1
-		q = s.DBQueries.mountsInsertSQL
+		updateOrInsertQuery = s.DBQueries.mountsInsertSQL
 	}
 
-	stmt, err := tx.Prepare(q)
+	mountPreparedStatement, err := transaction.Prepare(updateOrInsertQuery)
 	if err != nil {
-		return "", err
+		transaction.Rollback()
+		return err
 	}
-	defer stmt.Close()
+	defer mountPreparedStatement.Close()
 
-	_, err = stmt.Exec(newCount, volid, id)
+	_, err = mountPreparedStatement.Exec(newCount, volid, id)
 	if err != nil {
-		tx.Rollback()
-		return "", err
+		transaction.Rollback()
+		return err
 	}
 
 	// Commit the change
-	return vol.Mountpoint, tx.Commit()
+	return transaction.Commit()
 }
 
 // Unmount volume with name and id
@@ -411,64 +414,64 @@ func (s SQLVolumeDatabase) Unmount(volumeName string, id string) error {
 	}
 
 	// Begin transaction to the database
-	tx, err := sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
 		return err
 	}
 
 	var newCount int
-	number, exists := mounts[id]
+	numberOfMounts, exists := mounts[id]
 	if exists {
-		if number > 1 {
+		if numberOfMounts > 1 {
 
 			// Need to update the value to number + 1
-			newCount = number - 1
-			stmt, err := tx.Prepare(s.DBQueries.mountsUpdateCountByVolumeIDAndRequesterSQL)
+			newCount = numberOfMounts - 1
+			preparedStatement, err := transaction.Prepare(s.DBQueries.mountsUpdateCountByVolumeIDAndRequesterSQL)
 			if err != nil {
 				return err
 			}
-			defer stmt.Close()
+			defer preparedStatement.Close()
 
-			_, err = stmt.Exec(newCount, volid, id)
+			_, err = preparedStatement.Exec(newCount, volid, id)
 			if err != nil {
-				tx.Rollback()
+				transaction.Rollback()
 				return err
 			}
 
 		} else {
 
 			// Need to delete
-			stmt, err := tx.Prepare(s.DBQueries.mountsDeleteByVolumeIDAndRequesterSQL)
+			preparedStatement, err := transaction.Prepare(s.DBQueries.mountsDeleteByVolumeIDAndRequesterSQL)
 			if err != nil {
 				return err
 			}
-			defer stmt.Close()
+			defer preparedStatement.Close()
 
-			_, err = stmt.Exec(volid, id)
+			_, err = preparedStatement.Exec(volid, id)
 			if err != nil {
-				tx.Rollback()
+				transaction.Rollback()
 				return err
 			}
 
-			stmtUp, errUp := tx.Prepare(s.DBQueries.volumesUpdateMountpointSQL)
-			if errUp != nil {
-				return errUp
+			volumeMountpointPreparedStatement, err := transaction.Prepare(s.DBQueries.volumesUpdateMountpointSQL)
+			if err != nil {
+				return err
 			}
-			defer stmtUp.Close()
+			defer volumeMountpointPreparedStatement.Close()
 
-			_, errUp = stmtUp.Exec("", volid)
-			if errUp != nil {
-				tx.Rollback()
-				return errUp
+			_, err = volumeMountpointPreparedStatement.Exec("", volid)
+			if err != nil {
+				transaction.Rollback()
+				return err
 			}
 		}
 	} else {
-		tx.Rollback()
+		transaction.Rollback()
 		return errors.New("Volume + ID was not mounted.")
 	}
 
 	// Commit the change
-	return tx.Commit()
+	return transaction.Commit()
 }
 
 // listMounts returns of all the IDs requesting the volume to be mounted and number of requests outstanding for that id.
@@ -480,14 +483,14 @@ func (s SQLVolumeDatabase) listMounts(volumeName string) (map[string]int, int, e
 	}
 
 	// Prepare the query
-	stmt, err := sqlDB.Prepare(s.DBQueries.mountsGetRequesterAndCountByVolumeIDListSQL)
+	preparedStatement, err := sqlDB.Prepare(s.DBQueries.mountsGetRequesterAndCountByVolumeIDListSQL)
 	if err != nil {
 		return nil, 0, err
 	}
-	defer stmt.Close()
+	defer preparedStatement.Close()
 
 	// Query the database about the volumes
-	rows, err := stmt.Query(id)
+	rows, err := preparedStatement.Query(id)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -526,32 +529,32 @@ func (s SQLVolumeDatabase) listMounts(volumeName string) (map[string]int, int, e
 	return mounts, sum, nil
 }
 
-func (dest VolumeDatabaseQueries) merge(src VolumeDatabaseQueries) VolumeDatabaseQueries {
+func (d VolumeDatabaseQueries) merge(defaults VolumeDatabaseQueries) VolumeDatabaseQueries {
 
-	update := func(dst string, src string) string {
-		if dst != "" {
-			return dst
+	update := func(overrideValue string, defaultValue string) string {
+		if overrideValue != "" {
+			return overrideValue
 		}
 
-		return src
+		return defaultValue
 	}
 
 	return VolumeDatabaseQueries{
 		// Volumes SQL statments
-		volumesCreateTableSQL:              update(dest.volumesCreateTableSQL, src.volumesCreateTableSQL),
-		volumesInsertSQL:                   update(dest.volumesInsertSQL, src.volumesInsertSQL),
-		volumesGetNameAndMountpointListSQL: update(dest.volumesGetNameAndMountpointListSQL, src.volumesGetNameAndMountpointListSQL),
-		volumesGetVolumeByNameSQL:          update(dest.volumesGetVolumeByNameSQL, src.volumesGetVolumeByNameSQL),
-		volumesUpdateMountpointSQL:         update(dest.volumesUpdateMountpointSQL, src.volumesUpdateMountpointSQL),
-		volumesDeleteByIDSQL:               update(dest.volumesDeleteByIDSQL, src.volumesDeleteByIDSQL),
+		volumesCreateTableSQL:              update(d.volumesCreateTableSQL, defaults.volumesCreateTableSQL),
+		volumesInsertSQL:                   update(d.volumesInsertSQL, defaults.volumesInsertSQL),
+		volumesGetNameAndMountpointListSQL: update(d.volumesGetNameAndMountpointListSQL, defaults.volumesGetNameAndMountpointListSQL),
+		volumesGetVolumeByNameSQL:          update(d.volumesGetVolumeByNameSQL, defaults.volumesGetVolumeByNameSQL),
+		volumesUpdateMountpointSQL:         update(d.volumesUpdateMountpointSQL, defaults.volumesUpdateMountpointSQL),
+		volumesDeleteByIDSQL:               update(d.volumesDeleteByIDSQL, defaults.volumesDeleteByIDSQL),
 
 		// Mounts SQL statements
-		mountsCreateTableSQL:                        update(dest.mountsCreateTableSQL, src.mountsCreateTableSQL),
-		mountsInsertSQL:                             update(dest.mountsInsertSQL, src.mountsInsertSQL),
-		mountsGetRequesterAndCountByVolumeIDListSQL: update(dest.mountsGetRequesterAndCountByVolumeIDListSQL, src.mountsGetRequesterAndCountByVolumeIDListSQL),
-		mountsUpdateCountByVolumeIDAndRequesterSQL:  update(dest.mountsUpdateCountByVolumeIDAndRequesterSQL, src.mountsUpdateCountByVolumeIDAndRequesterSQL),
-		mountsDeleteByVolumeIDSQL:                   update(dest.mountsDeleteByVolumeIDSQL, src.mountsDeleteByVolumeIDSQL),
-		mountsDeleteByVolumeIDAndRequesterSQL:       update(dest.mountsDeleteByVolumeIDAndRequesterSQL, src.mountsDeleteByVolumeIDAndRequesterSQL),
+		mountsCreateTableSQL:                        update(d.mountsCreateTableSQL, defaults.mountsCreateTableSQL),
+		mountsInsertSQL:                             update(d.mountsInsertSQL, defaults.mountsInsertSQL),
+		mountsGetRequesterAndCountByVolumeIDListSQL: update(d.mountsGetRequesterAndCountByVolumeIDListSQL, defaults.mountsGetRequesterAndCountByVolumeIDListSQL),
+		mountsUpdateCountByVolumeIDAndRequesterSQL:  update(d.mountsUpdateCountByVolumeIDAndRequesterSQL, defaults.mountsUpdateCountByVolumeIDAndRequesterSQL),
+		mountsDeleteByVolumeIDSQL:                   update(d.mountsDeleteByVolumeIDSQL, defaults.mountsDeleteByVolumeIDSQL),
+		mountsDeleteByVolumeIDAndRequesterSQL:       update(d.mountsDeleteByVolumeIDAndRequesterSQL, defaults.mountsDeleteByVolumeIDAndRequesterSQL),
 	}
 
 }

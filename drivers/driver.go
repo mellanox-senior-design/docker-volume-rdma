@@ -8,25 +8,28 @@ import (
 
 // RDMAVolumeDriver holds all the information pertaining to a RDMA Volume Driver.
 type RDMAVolumeDriver struct {
-	StorageController RDMAStorageController
+	StorageController StorageController
 	VolumeDatabase    db.VolumeDatabase
 }
 
-// RDMAStorageController interface allowing Storage Controllers to create, mounte, remove, ect. volumes on a host.
-type RDMAStorageController interface {
+// StorageController interface allowing Storage Controllers to create, mounte, remove, ect. volumes on a host.
+type StorageController interface {
 	Connect() error
 	Disconnect() error
 
-	// Mount a volume and mark that ID is using it, returning Mountpoint and error (nil if no error).
-	Mount(volumeName string, id string) (string, error)
+	// Mount a volume, returning Mountpoint and error (nil if no error).
+	Mount(volumeName string) (string, error)
 
-	// Unmount a volume from the host (NOT DELETE) if there are no longer any other ID's asking for the volume, returning error (nil if no error).
-	Unmount(volumeName string, id string) error
+	// Unmount a volume from the host (NOT DELETE).
+	Unmount(volumeName string) error
+
+	// Delete a particular volume
+	Delete(volumeName string) error
 }
 
 // NewRDMAVolumeDriver constructs a new RDMAVolumeDriver.
-func NewRDMAVolumeDriver(sc RDMAStorageController, vd db.VolumeDatabase) RDMAVolumeDriver {
-	return RDMAVolumeDriver{sc, vd}
+func NewRDMAVolumeDriver(storageController StorageController, volumeDatabase db.VolumeDatabase) RDMAVolumeDriver {
+	return RDMAVolumeDriver{storageController, volumeDatabase}
 }
 
 func (r RDMAVolumeDriver) validateOrCrash() {
@@ -168,7 +171,10 @@ func (r RDMAVolumeDriver) Remove(request volume.Request) volume.Response {
 	// TODO unmount all mounts before remove
 
 	// Pass the remove request to the volume database.
-	err := r.VolumeDatabase.Remove(request.Name)
+	err := r.StorageController.Delete(request.Name)
+	if err == nil {
+		err = r.VolumeDatabase.Remove(request.Name)
+	}
 
 	// If there was an error, log.
 	var errString string
@@ -234,11 +240,13 @@ func (r RDMAVolumeDriver) Mount(request volume.MountRequest) volume.Response {
 	// Ensure the r is properly confiured
 	r.validateOrCrash()
 
-	// Pass the mount request to the volume database.
-	mountpoint, err := r.VolumeDatabase.Mount(request.Name, request.ID)
-
 	// Pass the mount request to the storage controller.
-	// TODO mountpoint, err := r.StorageController.Mount(request.Name, request.ID)
+	mountpoint, err := r.StorageController.Mount(request.Name)
+	if err == nil {
+
+		// Pass the mount request to the volume database.
+		err = r.VolumeDatabase.Mount(request.Name, request.ID, mountpoint)
+	}
 
 	// If there was an error, log.
 	var errString string
@@ -272,9 +280,10 @@ func (r RDMAVolumeDriver) Unmount(request volume.UnmountRequest) volume.Response
 
 	// Pass the unmount request to the volume database.
 	err := r.VolumeDatabase.Unmount(request.Name, request.ID)
-
-	// Pass the unmount request to the storage controller.
-	// TODO err := r.StorageController.Unmount(request.Name, request.ID)
+	if err == nil {
+		// Pass the unmount request to the storage controller.
+		err = r.StorageController.Unmount(request.Name)
+	}
 
 	// If there was an error, log.
 	if err != nil {

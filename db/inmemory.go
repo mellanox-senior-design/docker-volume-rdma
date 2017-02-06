@@ -128,10 +128,10 @@ func (i InMemoryVolumeDatabase) Remove(volumeName string) error {
 }
 
 // Mount the specified volume to the host and increment the id to prevent premature removal, returning an error if one occured.
-func (i InMemoryVolumeDatabase) Mount(volumeName string, id string) (string, error) {
+func (i InMemoryVolumeDatabase) Mount(volumeName string, id string, mountpoint string) error {
 	vol, err := i.Get(volumeName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var exists bool
@@ -148,10 +148,9 @@ func (i InMemoryVolumeDatabase) Mount(volumeName string, id string) (string, err
 		i.mounts[volumeName][id] = 1
 	}
 
-	mountpoint := "/fake/location/" + volumeName
 	vol.Mountpoint = mountpoint
 	glog.Info(volumeName, " and id ", id, " is now has ", i.mounts[volumeName][id], " connections to "+mountpoint)
-	return mountpoint, nil
+	return nil
 }
 
 // Unmount the specified volume if the ids are no longer referencing it, returning an error if one occured.

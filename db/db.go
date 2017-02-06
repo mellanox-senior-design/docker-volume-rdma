@@ -28,7 +28,7 @@ type VolumeDatabase interface {
 	Remove(volumeName string) error
 
 	// Mount a particular volume.
-	Mount(volumeName string, id string) (string, error)
+	Mount(volumeName string, id string, mountpoint string) error
 
 	// Unmount a particular volume.
 	Unmount(volumeName string, id string) error
