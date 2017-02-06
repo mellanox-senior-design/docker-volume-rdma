@@ -17,13 +17,13 @@ func NewSQLiteVolumeDatabase(dbPath string) SQLVolumeDatabase {
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         mountpoint TEXT
-    )`
+    );`
 
 	queries.mountsCreateTableSQL = `CREATE TABLE IF NOT EXISTS mounts (
         volume_id INTEGER NOT NULL,
         requester_id TEXT NOT NULL,
         count INTEGER NOT NULL
-    )`
+    );`
 
 	// If the database path was not set, then we are resposible for managing it.
 	if dbPath == "" {

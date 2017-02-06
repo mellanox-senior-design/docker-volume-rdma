@@ -16,7 +16,7 @@ func NewMySQLVolumeDatabase(host string, username string, password string, schem
         id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
         name VARCHAR(256) NOT NULL UNIQUE,
         mountpoint TEXT
-    )`
+    );`
 
 	// [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
 	var connection string
