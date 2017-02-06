@@ -1,9 +1,5 @@
 package drivers
 
-import (
-	"github.com/docker/go-plugins-helpers/volume"
-)
-
 type GlusterStorageController struct {
 }
 
@@ -11,30 +7,22 @@ func NewGlusterStorageController() GlusterStorageController {
 	return GlusterStorageController{}
 }
 
-func (g GlusterStorageController) Create(volumeName string, opts map[string]string) error {
+func (g GlusterStorageController) Connect() error {
 	return nil
 }
 
-func (g GlusterStorageController) List() ([]*volume.Volume, error) {
-	return nil, nil
-}
-
-func (g GlusterStorageController) Get(volumeName string) (*volume.Volume, error) {
-	return nil, nil
-}
-
-func (g GlusterStorageController) Remove(volumeName string) error {
+func (g GlusterStorageController) Disconnect() error {
 	return nil
 }
 
-func (g GlusterStorageController) Path(volumeName string) (string, error) {
+func (g GlusterStorageController) Mount(volumeName string) (string, error) {
 	return "", nil
 }
 
-func (g GlusterStorageController) Mount(volumeName string, id string) (string, error) {
-	return "/some/path/here", nil
+func (g GlusterStorageController) Unmount(volumeName string) error {
+	return nil
 }
 
-func (g GlusterStorageController) Unmount(volumeName string, id string) error {
+func (g GlusterStorageController) Delete(volumeName string) error {
 	return nil
 }
