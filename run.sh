@@ -4,5 +4,5 @@ if [ -z "$GOPATH" ]; then
     exit 2
 fi
 
-cd $GOPATH/src/github.com/Jacobingalls/docker-volume-rdma
-go run main.go -logtostderr=true
+cd "$GOPATH/src/github.com/mellanox-senior-design/docker-volume-rdma" || exit 1
+go run main.go -logtostderr=true "$@"
