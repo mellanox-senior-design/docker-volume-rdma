@@ -39,8 +39,8 @@ func NewMySQLVolumeDatabase(host string, username string, password string, schem
 	if schema == "" {
 		glog.Fatal("A database schema must be specified with -dbschema")
 	}
-	connection += path.Join("/", schema)
-	printedConnection += path.Join("/", schema)
+	connection = path.Join(connection, schema)
+	printedConnection = path.Join(printedConnection, schema)
 
 	// Create the connection
 	glog.Info("Connecting to", printedConnection)
