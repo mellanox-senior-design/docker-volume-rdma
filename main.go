@@ -57,40 +57,51 @@ func main() {
 	// Convert port to string, and print startup message.
 	port := strconv.Itoa(httpPort)
 
+	driver, handler, err := configure()
+	if err == nil {
+
+		// Handle SIGINT gracefully
+		sigintChannel := make(chan os.Signal, 2)
+		signal.Notify(sigintChannel, os.Interrupt, syscall.SIGINT)
+		go func() {
+			<-sigintChannel
+			glog.Info("Exiting ...")
+			driver.Disconnect()
+			os.Exit(1)
+		}()
+
+		err = driver.Connect()
+		if err == nil {
+			defer driver.Disconnect()
+
+			glog.Info("Running! http://localhost:" + port)
+			err = handler.ServeTCP("test_volume", ":"+port, nil)
+		}
+	}
+
+	// Log any error that may have occurred.
+	glog.Fatal(err)
+}
+
+func configure() (*drivers.RDMAVolumeDriver, *volume.Handler, error) {
 	// Create and begin serving volume driver on tcp/ip port, httpPort.
-	volumeDriver, err := getDatabaseConnection()
+	volumeDatabase, err := getDatabaseConnection()
 	if err != nil {
-		glog.Fatal(err)
+		return nil, nil, err
 	}
 
 	// Configure Storage Controller
 	storageController, err := getStorageConnection()
 	if err != nil {
-		glog.Fatal(err)
+		return nil, nil, err
 	}
 
 	// Print startup message and start server
 	glog.Info("Connecting to services ...")
-	driver := drivers.NewRDMAVolumeDriver(storageController, volumeDriver)
-	driver.Connect()
-	defer driver.Disconnect()
-
-	// Handle SIGINT gracefully
-	sigintChannel := make(chan os.Signal, 2)
-	signal.Notify(sigintChannel, os.Interrupt, syscall.SIGINT)
-	go func() {
-		<-sigintChannel
-		glog.Info("Exiting ...")
-		driver.Disconnect()
-		os.Exit(1)
-	}()
-
-	glog.Info("Running! http://localhost:" + port)
+	driver := drivers.NewRDMAVolumeDriver(storageController, volumeDatabase)
 	handler := volume.NewHandler(driver)
-	err = handler.ServeTCP("test_volume", ":"+port, nil)
 
-	// Log any error that may have occurred.
-	glog.Fatal(err)
+	return &driver, handler, nil
 }
 
 // GetDatabaseConnection returns the database connection that was requested on the command line.
@@ -110,7 +121,7 @@ func getDatabaseConnection() (db.VolumeDatabase, error) {
 		return db.NewMySQLVolumeDatabase(volumeDatabaseHost, volumeDatabaseUsername, volumeDatabasePassword, volumeDatabaseSchema), nil
 
 	default:
-		return nil, errors.New("Unsupported database, please choose sqlite, mysql, or in-memory.")
+		return nil, errors.New("unsupported database, please choose sqlite, mysql, or in-memory")
 	}
 }
 
@@ -148,7 +159,7 @@ func getStorageConnection() (drivers.StorageController, error) {
 		return drivers.NewGlusterStorageController(), nil
 
 	default:
-		return nil, errors.New("Unsupported storage controller, please choose glusterfs or on-disk.")
+		return nil, errors.New("unsupported storage controller, please choose glusterfs or on-disk")
 	}
 }
 

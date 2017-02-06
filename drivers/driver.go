@@ -168,8 +168,6 @@ func (r RDMAVolumeDriver) Remove(request volume.Request) volume.Response {
 	// Ensure the r is properly confiured
 	r.validateOrCrash()
 
-	// TODO unmount all mounts before remove
-
 	// Pass the remove request to the volume database.
 	err := r.StorageController.Delete(request.Name)
 	if err == nil {

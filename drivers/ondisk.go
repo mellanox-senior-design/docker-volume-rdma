@@ -37,6 +37,8 @@ func NewOnDiskStorageController(path string) OnDiskStorageController {
 		path = "/etc/docker/mounts/"
 	}
 
+	glog.Info("Mount path: ", path)
+
 	_, err := os.Open(path)
 	if err != nil {
 		os.MkdirAll(path, 0755)
@@ -105,7 +107,7 @@ func (d OnDiskStorageController) Unmount(volumeName string) error {
 		return err
 	}
 
-	return errors.New("Already unmounted.")
+	return errors.New("already unmounted")
 }
 
 // Delete a particular volume
