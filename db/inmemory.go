@@ -73,13 +73,13 @@ func (i InMemoryVolumeDatabase) Create(volumeName string, options map[string]str
 
 // List all of the volumes in the database, returning an error if one occured.
 func (i InMemoryVolumeDatabase) List() ([]*volume.Volume, error) {
-	l := make([]*volume.Volume, 0, len(i.volumes))
+	volumeList := make([]*volume.Volume, 0, len(i.volumes))
 
 	for _, value := range i.volumes {
-		l = append(l, value)
+		volumeList = append(volumeList, value)
 	}
 
-	return l, nil
+	return volumeList, nil
 }
 
 // Get the volume definiton from the database by name, returning an error if one occured.

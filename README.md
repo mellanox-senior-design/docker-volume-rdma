@@ -1,5 +1,5 @@
 # RDMA Volume Plugin for Docker
-[![Build Status](https://travis-ci.com/mellanox-senior-design/docker-volume-rdma.svg?token=gApgdwdJqgCSb16jdyzv&branch=master)](https://travis-ci.com/mellanox-senior-design/docker-volume-rdma)
+[![Build Status](https://travis-ci.org/mellanox-senior-design/docker-volume-rdma.svg?branch=master)](https://travis-ci.org/mellanox-senior-design/docker-volume-rdma)
 
 This volume plugin aims to add an RDMA-enabled storage backend to Docker Volumes.
 

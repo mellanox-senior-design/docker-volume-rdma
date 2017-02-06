@@ -15,13 +15,13 @@ var SQLiteSQLOverrides = VolumeDatabaseQueries{
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         mountpoint TEXT
-    )`,
+    );`,
 
 	mountsCreateTableSQL: `CREATE TABLE IF NOT EXISTS mounts (
         volume_id INTEGER NOT NULL,
         requester_id TEXT NOT NULL,
         count INTEGER NOT NULL
-    )`,
+    );`,
 }
 
 // NewSQLiteVolumeDatabase creates a new SQLVolumeDatabase, saving the database at dbPath.
