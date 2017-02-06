@@ -1,6 +1,8 @@
 package db
 
 import (
+	"path"
+
 	// Allows connecting to mysql
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
@@ -37,8 +39,8 @@ func NewMySQLVolumeDatabase(host string, username string, password string, schem
 	if schema == "" {
 		glog.Fatal("A database schema must be specified with -dbschema")
 	}
-	connection += "/" + schema
-	printedConnection += "/" + schema
+	connection += path.Join("/", schema)
+	printedConnection += path.Join("/", schema)
 
 	// Create the connection
 	glog.Info("Connecting to", printedConnection)

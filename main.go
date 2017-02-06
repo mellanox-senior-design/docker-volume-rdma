@@ -63,10 +63,10 @@ func main() {
 	defer driver.Disconnect()
 
 	// Handle SIGINT gracefully
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGINT)
+	sigintChannel := make(chan os.Signal, 2)
+	signal.Notify(sigintChannel, os.Interrupt, syscall.SIGINT)
 	go func() {
-		<-c
+		<-sigintChannel
 		glog.Info("Exiting ...")
 		driver.Disconnect()
 		os.Exit(1)
