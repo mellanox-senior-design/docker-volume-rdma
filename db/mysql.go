@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"path"
 
 	// Allows connecting to mysql
@@ -9,7 +10,8 @@ import (
 )
 
 // NewMySQLVolumeDatabase creates a new SQLVolumeDatabase, connectiong to a mysql host.
-func NewMySQLVolumeDatabase(host string, username string, password string, schema string) SQLVolumeDatabase {
+func NewMySQLVolumeDatabase(host string, username string, password string, schema string) (SQLVolumeDatabase, error) {
+	var sqlVolumeDatabase SQLVolumeDatabase
 
 	var queries VolumeDatabaseQueries
 	queries.volumesCreateTableSQL = `CREATE TABLE IF NOT EXISTS volumes (
@@ -37,12 +39,12 @@ func NewMySQLVolumeDatabase(host string, username string, password string, schem
 	printedConnection += "@" + host
 
 	if schema == "" {
-		glog.Fatal("A database schema must be specified with -dbschema")
+		return sqlVolumeDatabase, errors.New("A database schema must be specified with -dbschema")
 	}
 	connection = path.Join(connection, schema)
 	printedConnection = path.Join(printedConnection, schema)
 
 	// Create the connection
 	glog.Info("Connecting to", printedConnection)
-	return NewSQLVolumeDatabase("mysql", connection, queries)
+	return NewSQLVolumeDatabase("mysql", connection, queries), nil
 }
