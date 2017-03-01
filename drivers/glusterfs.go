@@ -1,40 +1,35 @@
 package drivers
 
-import (
-	"github.com/docker/go-plugins-helpers/volume"
-)
-
+// GlusterStorageController connects to the local gluster client and facilitates volume mounts
 type GlusterStorageController struct {
 }
 
+// NewGlusterStorageController creates a new GlusterStorageController
 func NewGlusterStorageController() GlusterStorageController {
 	return GlusterStorageController{}
 }
 
-func (g GlusterStorageController) Create(volumeName string, opts map[string]string) error {
+// Connect to glusterfs
+func (g GlusterStorageController) Connect() error {
 	return nil
 }
 
-func (g GlusterStorageController) List() ([]*volume.Volume, error) {
-	return nil, nil
-}
-
-func (g GlusterStorageController) Get(volumeName string) (*volume.Volume, error) {
-	return nil, nil
-}
-
-func (g GlusterStorageController) Remove(volumeName string) error {
+// Disconnect from glusterfs
+func (g GlusterStorageController) Disconnect() error {
 	return nil
 }
 
-func (g GlusterStorageController) Path(volumeName string) (string, error) {
+// Mount a volume by name
+func (g GlusterStorageController) Mount(volumeName string) (string, error) {
 	return "", nil
 }
 
-func (g GlusterStorageController) Mount(volumeName string, id string) (string, error) {
-	return "/some/path/here", nil
+// Unmount a volume by name
+func (g GlusterStorageController) Unmount(volumeName string) error {
+	return nil
 }
 
-func (g GlusterStorageController) Unmount(volumeName string, id string) error {
+// Delete a volume, permanatly remove data
+func (g GlusterStorageController) Delete(volumeName string) error {
 	return nil
 }
