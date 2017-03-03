@@ -8,6 +8,17 @@ import (
 	"github.com/mellanox-senior-design/docker-volume-rdma/db"
 )
 
+func tearDown() {
+	os.RemoveAll("tests")
+	os.RemoveAll("test")
+}
+
+func TestMain(m *testing.M) {
+	retCode := m.Run()
+	tearDown()
+	os.Exit(retCode)
+}
+
 /*
  * based on InMemDatabase & OnDiskStorageController
  * the driver will always connect correctly
@@ -22,8 +33,6 @@ func TestConnect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestValidation(t *testing.T) {
@@ -34,8 +43,6 @@ func TestValidation(t *testing.T) {
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 	rdmaVolDriver.validateOrCrash()
 
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestDisconnect(t *testing.T) {
@@ -49,8 +56,6 @@ func TestDisconnect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestCreate(t *testing.T) {
@@ -79,8 +84,6 @@ func TestCreate(t *testing.T) {
 		t.Fatal("We should receive an error because a volume cannot be created twice")
 	}
 
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestList(t *testing.T) {
@@ -130,8 +133,6 @@ func TestList(t *testing.T) {
 			}
 		}
 	}
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestGet(t *testing.T) {
@@ -170,8 +171,6 @@ func TestGet(t *testing.T) {
 		t.Fatal("There should have been an error when Getting a volume that has not been created")
 	}
 
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestRemove(t *testing.T) {
@@ -213,8 +212,6 @@ func TestRemove(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestPath(t *testing.T) {
@@ -254,8 +251,6 @@ func TestPath(t *testing.T) {
 	if response.Mountpoint != "tests/docker/mounts/vol1" {
 		t.Fatal("Did not receive the expected path, instead got ", response.Mountpoint)
 	}
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 
 }
 
@@ -299,8 +294,7 @@ func TestMount(t *testing.T) {
 	if len(response.Err) == 0 {
 		t.Fatal("We should not be able to mount and uncreated volume")
 	}
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
+
 }
 
 func TestUnmount(t *testing.T) {
@@ -345,8 +339,6 @@ func TestUnmount(t *testing.T) {
 		t.Fatal(response.Err)
 	}
 
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
 
 func TestCapabilities(t *testing.T) {
@@ -361,6 +353,4 @@ func TestCapabilities(t *testing.T) {
 		t.Fatal(response.Err)
 	}
 
-	defer os.RemoveAll("tests/")
-	defer os.Remove("tests")
 }
