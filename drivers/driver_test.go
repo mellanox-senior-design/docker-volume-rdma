@@ -1,6 +1,7 @@
 package drivers
 
 import (
+	"os"
 	"testing"
 
 	"github.com/docker/go-plugins-helpers/volume"
@@ -14,40 +15,48 @@ import (
 func TestConnect(t *testing.T) {
 	t.Parallel()
 	dataBase := db.NewInMemoryVolumeDatabase()
-	storageController := NewOnDiskStorageController("")
+	storageController := NewOnDiskStorageController("tests/docker/mounts/")
 	rdmaVolumeDriver := NewRDMAVolumeDriver(storageController, dataBase)
 
 	err := rdmaVolumeDriver.Connect()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestValidation(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 	rdmaVolDriver.validateOrCrash()
+
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestDisconnect(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 	err := rdmaVolDriver.Disconnect()
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 
@@ -70,12 +79,14 @@ func TestCreate(t *testing.T) {
 		t.Fatal("We should receive an error because a volume cannot be created twice")
 	}
 
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestList(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 	req := volume.Request{Name: "testDos"}
@@ -119,12 +130,14 @@ func TestList(t *testing.T) {
 			}
 		}
 	}
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestGet(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 
@@ -156,12 +169,15 @@ func TestGet(t *testing.T) {
 	if len(secondRes.Err) == 0 {
 		t.Fatal("There should have been an error when Getting a volume that has not been created")
 	}
+
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestRemove(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 
@@ -196,12 +212,15 @@ func TestRemove(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestPath(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 
@@ -232,21 +251,22 @@ func TestPath(t *testing.T) {
 		t.Fatal("Encountered issue while requesting path of volume ", response.Err)
 	}
 
-	if response.Mountpoint != "/etc/docker/mounts/vol1" {
+	if response.Mountpoint != "tests/docker/mounts/vol1" {
 		t.Fatal("Did not receive the expected path, instead got ", response.Mountpoint)
 	}
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 
 }
 
 func TestMount(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 
 	request := volume.Request{Name: "movies"}
-	// sRequest := volume.Request{Name: "songs"}
 	mountRequest := volume.MountRequest{Name: "", ID: "42"}
 
 	response := rdmaVolDriver.Mount(mountRequest)
@@ -267,7 +287,7 @@ func TestMount(t *testing.T) {
 		t.Fatal(response.Err)
 	}
 
-	if response.Mountpoint != "/etc/docker/mounts/movies" {
+	if response.Mountpoint != "tests/docker/mounts/movies" {
 		t.Fatal("The mountpoint generated: ", response.Mountpoint, " does not correspond to the proper path")
 	}
 
@@ -279,12 +299,14 @@ func TestMount(t *testing.T) {
 	if len(response.Err) == 0 {
 		t.Fatal("We should not be able to mount and uncreated volume")
 	}
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestUnmount(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 	response := rdmaVolDriver.Unmount(volume.UnmountRequest{Name: "uncreated", ID: "500901234"})
@@ -322,12 +344,15 @@ func TestUnmount(t *testing.T) {
 	if len(response.Err) != 0 {
 		t.Fatal(response.Err)
 	}
+
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
 
 func TestCapabilities(t *testing.T) {
 	t.Parallel()
 	db := db.NewInMemoryVolumeDatabase()
-	sc := NewOnDiskStorageController("")
+	sc := NewOnDiskStorageController("tests/docker/mounts/")
 
 	rdmaVolDriver := NewRDMAVolumeDriver(sc, db)
 	response := rdmaVolDriver.Capabilities(volume.Request{})
@@ -335,4 +360,7 @@ func TestCapabilities(t *testing.T) {
 	if len(response.Err) != 0 {
 		t.Fatal(response.Err)
 	}
+
+	defer os.RemoveAll("tests/")
+	defer os.Remove("tests")
 }
