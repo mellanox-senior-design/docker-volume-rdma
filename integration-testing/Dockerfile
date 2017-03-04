@@ -1,5 +1,5 @@
-FROM bash
+FROM scratch
 
-ADD DockerVolumeRDMA /
+COPY docker-volume-rdma /
 
-ENTRYPOINT ["/DockerVolumeRDMA", "-logtostderr=true", "-dbpath=in-memory"]
+ENTRYPOINT ["/docker-volume-rdma", "-logtostderr=true", "-db=in-memory"]
