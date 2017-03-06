@@ -83,11 +83,12 @@ function dcGo() {
     testOut "benchmark Finished."
 }
 
-# Itterate over tests
+cd "$(dirname $0)"
+
+# Iterate over tests
 ran="0"
 for i in $(ls -d */ | grep -v results | grep ".*$1.*"); do
     ran="1"
-
     testOut "Testing $i"
     cd $i
     dcGo
