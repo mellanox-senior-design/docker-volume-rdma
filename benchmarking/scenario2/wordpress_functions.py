@@ -11,9 +11,10 @@ from wordpress_xmlrpc.methods.posts import GetPosts, NewPost, GetPost
 from wordpress_xmlrpc.methods.users import GetUserInfo
 from wordpress_xmlrpc.methods import posts
 
-wp_url = "http://localhost:8000/xmlrpc.php"
+wp_url = "http://localhost:4200/xmlrpc.php"
 wp_username = "jc"
 wp_password = "7$aYpIKvm1T16LZCxF"
+# 7$aYpIKvm1T16LZCxF
 wp_blogid = ""
 
 wp = Client(wp_url, wp_username, wp_password)
@@ -42,38 +43,15 @@ def makePost(title, content, terms_names):
 def getPost(post):
     GetPost(post.id)
 
-readerThreads = []
-def loadPostTest(post, readers):
-    logging.debug("Making " + str(readers) + " readers to get popular post...")
-    sys.stdout.flush()
-
-    start = time.time()
-    for i in readers:
-        id = i
-        t = threading.Thread(target=getPost, args= (post, ))
-        t.daemon = True
-        readerThreads.append(t)
-
-    for x in readerThreads:
-        x.start()
-
-    for x in readerThreads:
-        x.join()
-
-    end = time.time()
-    logging.debug("Getting the popular post for " + str(readers) + " readers took: " + str(end-start))
-
-    return end
-
 def main():
     logging.debug("Starting...")
 
     argv = sys.argv
-    if len(argv) != 3:
+    if len(argv) != 2:
         sys.exit(1)
 
     post = 0
-    if argv[1] == '1':
+    if argv[1] == 'post':
         logging.debug("Making new post...")
         post = makePost(
         'A post about how popular something cool is',
@@ -83,26 +61,6 @@ def main():
         'category': ['Introductions', 'Tests']})
         logging.debug("Post was made...")
 
-    else:
-        logging.debug("Get the popular post...")
-        offset = 0
-        increment = 20
-        while True:
-            results = wp.call(posts.GetPosts({'number': increment, 'offset': offset}))
-            if len(results) == 0:
-                break
-            for post in results:
-                if(post.user == 'mario'):
-                    post = loadPostTest(post, argv[2])
-
-            offset = offset + increment
-
-    if(post == 0):
-        logging.debug("derp")
-    else:
-        logging.debug("Found the popular post...")
-
-    loadPostTest(post, argv[2])
 
 if __name__ == '__main__':
     hostname = os.uname()[1]
