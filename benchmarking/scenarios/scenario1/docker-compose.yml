@@ -4,14 +4,11 @@ services:
     image: mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
-    volumes:
-     - data-volume:/var/lib/mysql
     ports:
      - "3306:3306"
   bench:
     build: .
     links:
      - "mysql:mysql"
-     
-volumes:
-  data-volume:
+    volumes:
+     - /tmp/bench_results:/tmp/bench_results

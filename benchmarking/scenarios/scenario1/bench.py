@@ -2,10 +2,10 @@ import os
 import logging
 import MySQLdb
 import time
-import progressbar
 import sys
 import Queue
 import threading
+import json
 
 createUserSQL   = "INSERT IGNORE INTO users (name) VALUES (%s);"
 getUserByUsernameSQL   = "SELECT * FROM users WHERE name=%s;"
@@ -143,9 +143,21 @@ def main():
     #     logging.debug(row[2])
     # db.close()
 
-    logging.info("[Create Users] " + str(intUserTime))
-    logging.info("[Create Books] " + str(intBookTime))
 
+    logging.info("Starting result save.")
+    with open('/tmp/bench_results/result.json', 'w') as fp:
+        results = {
+            "hostname": hostname,
+            "results": {
+                "Create": {
+                    "Users": intUserTime,
+                    "Books": intBookTime
+                }
+            }
+        }
+
+        logging.info(json.dumps(results))
+        json.dump(results, fp)
 
 if __name__ == '__main__':
     hostname = os.uname()[1]
