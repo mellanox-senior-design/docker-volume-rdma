@@ -9,8 +9,8 @@ done
 
 echo "MySql is up!"
 
-while ! nc -z wordpress 4200; do
-  echo "Waiting for WordPress to launch (4200)."
+while ! nc -z wordpress 80; do
+  echo "Waiting for WordPress to launch (80)."
   sleep 1
 done
 

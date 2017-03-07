@@ -18,6 +18,7 @@ import time
 import sys
 import subprocess
 import re
+import json
 
 def main():
     # subprocess.call(["hey", "-m=GET", "-disable-compression", "https://google.com"])
