@@ -23,10 +23,8 @@ def main():
     # subprocess.call(["hey", "-m=GET", "-disable-compression", "https://google.com"])
     # ret = subprocess.check_output(["hey", "-m=GET", "-disable-compression", "http://localhost:8000/?p=20"])
     # hey -m=GET -disable-compression https://google.com
+    logging.debug("Starting...")
     ret = subprocess.check_output(["hey", "-m=GET", "-disable-compression", "https://google.com"])
-
-    # ret = "hello\n\nworld"
-    # print ret
 
     ret = re.sub(r'(\n\n)', "\n", ret)
     res = []
@@ -74,9 +72,19 @@ def main():
         except StopIteration:
             break
 
-    out = open("out", "w")
-    out.write('\n'.join(res))
-    out.close()
+    logging.info("Starting result save.")
+    with open('/tmp/bench_results/result.json', 'w') as fp:
+        results = {
+            "hostname": hostname,
+            "results": {
+                "Load Post": {
+                    "Results": res
+                }
+            }
+        }
+
+        logging.info(json.dumps(results))
+        json.dump(results, fp)
 
 if __name__ == '__main__':
     hostname = os.uname()[1]

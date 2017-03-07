@@ -1,26 +1,35 @@
-version: '2'
-
+version: '3'
 services:
-   db:
+   mysql:
      image: mysql:5.7
-     volumes:
-       - db_data:/var/lib/mysql
+    #  volumes:
+    #    - db_data:/var/lib/mysql
      restart: always
      environment:
        MYSQL_ROOT_PASSWORD: wordpress
        MYSQL_DATABASE: wordpress
        MYSQL_USER: wordpress
        MYSQL_PASSWORD: wordpress
+     ports:
+      - "3306:3306"
 
    wordpress:
      depends_on:
-       - db
+       - mysql
      image: wordpress:latest
      ports:
        - "4200:80"
      restart: always
      environment:
-       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_HOST: mysql:3306
        WORDPRESS_DB_PASSWORD: wordpress
-volumes:
-    db_data:
+
+   bench:
+     build: .
+     links:
+      - "mysql:mysql"
+      - "wordpress:wordpress"
+     volumes:
+      - /tmp/bench_results:/tmp/bench_results
+# volumes:
+#     db_data:
