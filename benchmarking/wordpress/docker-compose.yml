@@ -2,8 +2,6 @@ version: '3'
 services:
    mysql:
      image: mysql:5.7
-    #  volumes:
-    #    - db_data:/var/lib/mysql
      restart: always
      environment:
        MYSQL_ROOT_PASSWORD: wordpress
@@ -31,5 +29,3 @@ services:
       - "wordpress:wordpress"
      volumes:
       - /tmp/bench_results:/tmp/bench_results
-# volumes:
-#     db_data:
