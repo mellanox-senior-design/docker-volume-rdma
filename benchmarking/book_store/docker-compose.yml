@@ -1,0 +1,14 @@
+version: "3"
+services:
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+     - "3306:3306"
+  bench:
+    build: .
+    links:
+     - "mysql:mysql"
+    volumes:
+     - /tmp/bench_results:/tmp/bench_results
