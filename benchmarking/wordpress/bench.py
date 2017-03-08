@@ -24,12 +24,15 @@ def main():
     logging.debug("Starting...")
     post_id = subprocess.check_output(["python", "wordpress_functions.py", "post"])
     create_url = []
-    host = "http://localhost:4200/?p="
+    host = "http://wordpress:80/?p="
     create_url.append(host)
     create_url.append(post_id.strip('\n'))
     url = ''.join(create_url)
+
+    logging.debug(url)
     ret = subprocess.check_output(["hey", "-m=GET", "-disable-compression", url])
 
+    logging.debug(ret)
     ret = re.sub(r'(\n\n)', "\n", ret)
     res = []
 
@@ -76,7 +79,7 @@ def main():
             break;
         except StopIteration:
             break
-    print res
+
     logging.info("Starting result save.")
     with open('/tmp/bench_results/result.json', 'w') as fp:
         results = {

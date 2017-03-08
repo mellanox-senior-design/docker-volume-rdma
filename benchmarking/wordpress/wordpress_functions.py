@@ -11,7 +11,7 @@ from wordpress_xmlrpc.methods.posts import GetPosts, NewPost, GetPost
 from wordpress_xmlrpc.methods.users import GetUserInfo
 from wordpress_xmlrpc.methods import posts
 
-wp_url = "http://localhost:4200/xmlrpc.php"
+wp_url = "http://wordpress/xmlrpc.php"
 wp_username = "test_account"
 wp_password = "wordpress"
 wp_blogid = ""
