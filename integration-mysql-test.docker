@@ -1,5 +1,0 @@
-FROM scratch
-
-COPY docker-volume-rdma /
-
-ENTRYPOINT ["/docker-volume-rdma", "-logtostderr=true", "-db=mysql", "-dbhost=mysql", "-dbuser=root", "-dbpass=foo", "-dbschema=rdma-volumes"]

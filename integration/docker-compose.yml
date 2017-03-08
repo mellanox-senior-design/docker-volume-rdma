@@ -1,0 +1,18 @@
+version: "3"
+services:
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+
+  plugin:
+    build: plugin/
+    links:
+     - "mysql:mysql"
+    entrypoint: "./plugin_run.sh -db=mysql -dbuser=root -dbpass=password -dbschema=rdma -dbhost=tcp(mysql:3306) -sc=on-disk"
+
+  tester:
+    build: tester/
+    links:
+     - "mysql:mysql"
+     - "plugin:plugin"
