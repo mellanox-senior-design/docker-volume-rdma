@@ -18,5 +18,7 @@ while ! nc -z wordpress 80; do
 done
 
 echo "WordPress blog is up!"
+sleep 5
 
+echo "run benchmarks now!"
 python bench.py

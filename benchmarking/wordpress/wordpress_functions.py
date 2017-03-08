@@ -12,9 +12,8 @@ from wordpress_xmlrpc.methods.users import GetUserInfo
 from wordpress_xmlrpc.methods import posts
 
 wp_url = "http://localhost:4200/xmlrpc.php"
-wp_username = "jc"
-wp_password = "7$aYpIKvm1T16LZCxF"
-# 7$aYpIKvm1T16LZCxF
+wp_username = "test_account"
+wp_password = "wordpress"
 wp_blogid = ""
 
 wp = Client(wp_url, wp_username, wp_password)
@@ -35,7 +34,7 @@ def makePost(title, content, terms_names):
     post.content = content
     post.post_status = 'publish'
     post.terms_names = terms_names
-    post.user = 'mario'
+    post.user = 'Mario'
 
     post.id = wp.call(NewPost(post))
     return post
@@ -60,6 +59,7 @@ def main():
         'post_tag': ['test', 'firstpost'],
         'category': ['Introductions', 'Tests']})
         logging.debug("Post was made...")
+        print post.id
 
 
 if __name__ == '__main__':

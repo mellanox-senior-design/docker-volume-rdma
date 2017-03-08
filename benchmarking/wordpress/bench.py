@@ -21,11 +21,14 @@ import re
 import json
 
 def main():
-    # subprocess.call(["hey", "-m=GET", "-disable-compression", "https://google.com"])
-    # ret = subprocess.check_output(["hey", "-m=GET", "-disable-compression", "http://localhost:8000/?p=20"])
-    # hey -m=GET -disable-compression https://google.com
     logging.debug("Starting...")
-    ret = subprocess.check_output(["hey", "-m=GET", "-disable-compression", "https://google.com"])
+    post_id = subprocess.check_output(["python", "wordpress_functions.py", "post"])
+    create_url = []
+    host = "http://localhost:4200/?p="
+    create_url.append(host)
+    create_url.append(post_id.strip('\n'))
+    url = ''.join(create_url)
+    ret = subprocess.check_output(["hey", "-m=GET", "-disable-compression", url])
 
     ret = re.sub(r'(\n\n)', "\n", ret)
     res = []
@@ -64,15 +67,16 @@ def main():
 
             # latency distribution
             line = it.next()
-            while(line):
+            while(line.lower() != "Error distribution:".lower()):
                 tmp = re.sub(r'^[\s\W]+', "", line)
                 tmp = re.sub(r'(\D)+$', "", tmp)
                 tmp = re.sub(r'(%\sin\s)', ",", tmp).lower()
                 res.append(tmp)
                 line = it.next()
+            break;
         except StopIteration:
             break
-
+    print res
     logging.info("Starting result save.")
     with open('/tmp/bench_results/result.json', 'w') as fp:
         results = {
