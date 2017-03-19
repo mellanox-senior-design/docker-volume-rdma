@@ -1,0 +1,31 @@
+version: '3'
+services:
+   mysql:
+     image: mysql:5.7
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: wordpress
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+     ports:
+      - "3306:3306"
+
+   wordpress:
+     depends_on:
+       - mysql
+     image: wordpress:latest
+     ports:
+       - "80:80"
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: mysql:3306
+       WORDPRESS_DB_PASSWORD: wordpress
+
+   bench:
+     build: .
+     links:
+      - "mysql:mysql"
+      - "wordpress:wordpress"
+     volumes:
+      - /tmp/bench_results:/tmp/bench_results
