@@ -1,0 +1,8 @@
+version: "3"
+services:
+  bench:
+    extends:
+      file: docker-compose.yml
+    volumes:
+     - /tmp/bench_results:/tmp/bench_results
+     - /test
