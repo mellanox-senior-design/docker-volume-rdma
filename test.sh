@@ -23,13 +23,6 @@ fi
 docker rmi docker-volume-rdma:"$GIT_BRANCH"
 
 green Benchmarks
-echo # make newline space
-for scenario in $(cd ./benchmarking; ls -d */ | grep -v '^scenarios/?$' | sed 's#/##'); do
-	echo # make space
-	green "Running Scenario: $scenario"
-	echo # make space
-	sleep 5
-	if ! ./benchmarking/test.sh "$scenario"; then
-		red 'Failed to run benchmarks'
-	fi
-done
+if ! ./benchmarking/test.sh; then
+	red 'Failed to run benchmarks'
+fi
