@@ -1,0 +1,5 @@
+version: "3"
+services:
+  mysql:
+    volumes:
+     - /mnt/glusterfs/mellanox/mysql:/var/lib/mysql

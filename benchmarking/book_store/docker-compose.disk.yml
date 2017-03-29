@@ -1,15 +1,8 @@
 version: "3"
 services:
   mysql:
-    extends:
-      file: docker-compose.yml
     volumes:
      - data-volume:/var/lib/mysql
-
-  bench:
-    extends:
-      file: docker-compose.yml
-
 
 volumes:
   data-volume:

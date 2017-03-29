@@ -3,4 +3,4 @@ services:
   bench:
     volumes:
      - /tmp/bench_results:/tmp/bench_results
-     - /test
+     - /mnt/glusterfs/guss/bonnie:/test
