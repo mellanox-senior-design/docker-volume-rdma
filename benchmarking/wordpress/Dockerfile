@@ -2,8 +2,10 @@ FROM golang:1.7.5
 
 COPY run.sh run.sh
 COPY bench.py bench.py
+COPY words words
 COPY wordpress_functions.py wordpress_functions.py
 COPY sql/db /go/flyway-4.1.1/sql/db
+
 
 RUN apt-get update && \
     apt-get install -y netcat && \

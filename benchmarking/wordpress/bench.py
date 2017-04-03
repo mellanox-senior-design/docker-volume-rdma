@@ -30,7 +30,7 @@ def main():
     url = ''.join(create_url)
 
     logging.debug(url)
-    ret = subprocess.check_output(["hey", "-m=GET", "-disable-compression", url])
+    ret = subprocess.check_output(["hey", "-n=1000", "-m=GET", "-disable-compression", url])
 
     logging.debug(ret)
     ret = re.sub(r'(\n\n)', "\n", ret)
