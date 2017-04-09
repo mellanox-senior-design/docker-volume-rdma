@@ -8,4 +8,7 @@ echo "The Plugin is up!"
 
 sleep 5
 
-echo "No tests..."
+echo "running integration tests"
+cd $GOPATH/src/github.com/mellanox-senior-design/docker-volume-rdma
+go get -t -v ./...
+go test -tags integration
