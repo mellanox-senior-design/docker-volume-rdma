@@ -8,6 +8,8 @@ import (
 	"github.com/golang/glog"
 )
 
+var sqlDB *sql.DB
+
 // SQLVolumeDatabase defines a volume database that uses a sqlite database.
 type SQLVolumeDatabase struct {
 	DBType       string
@@ -72,7 +74,7 @@ func NewSQLVolumeDatabase(dbType string, dbDataSource string, dbQueries VolumeDa
 		DBType:       dbType,
 		DBDataSource: dbDataSource,
 		DBQueries:    queries,
-		sqlDB:        nil}
+		sqlDB:        sqlDB}
 }
 
 // Connect to database
