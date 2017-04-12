@@ -8,12 +8,13 @@ import (
 	"github.com/golang/glog"
 )
 
+var sqlDB *sql.DB
+
 // SQLVolumeDatabase defines a volume database that uses a sqlite database.
 type SQLVolumeDatabase struct {
 	DBType       string
 	DBDataSource string
 	DBQueries    VolumeDatabaseQueries
-	sqlDB        *sql.DB
 }
 
 // VolumeDatabaseQueries is a struct that can contain queries for the volume database
@@ -71,8 +72,7 @@ func NewSQLVolumeDatabase(dbType string, dbDataSource string, dbQueries VolumeDa
 	return SQLVolumeDatabase{
 		DBType:       dbType,
 		DBDataSource: dbDataSource,
-		DBQueries:    queries,
-		sqlDB:        nil}
+		DBQueries:    queries}
 }
 
 // Connect to database
@@ -81,19 +81,19 @@ func (s SQLVolumeDatabase) Connect() error {
 
 	// Connect to database
 	var err error
-	s.sqlDB, err = sql.Open(s.DBType, s.DBDataSource)
+	sqlDB, err = sql.Open(s.DBType, s.DBDataSource)
 	if err != nil {
 		return err
 	}
 
-	err = s.sqlDB.Ping()
+	err = sqlDB.Ping()
 	if err != nil {
 		glog.Fatal("Unable to connect to database! ", err)
 	}
 
 	// Create the volumes table if it do not exist
 	glog.Info(s.DBQueries.volumesCreateTableSQL)
-	_, err = s.sqlDB.Exec(s.DBQueries.volumesCreateTableSQL)
+	_, err = sqlDB.Exec(s.DBQueries.volumesCreateTableSQL)
 	if err != nil {
 		glog.Error(err, ": ", s.DBQueries.volumesCreateTableSQL)
 		return err
@@ -101,7 +101,7 @@ func (s SQLVolumeDatabase) Connect() error {
 
 	// Create mount table, this will hold all of the ids that are requesting a volume
 	glog.Info(s.DBQueries.mountsCreateTableSQL)
-	_, err = s.sqlDB.Exec(s.DBQueries.mountsCreateTableSQL)
+	_, err = sqlDB.Exec(s.DBQueries.mountsCreateTableSQL)
 	if err != nil {
 		glog.Error(err, ": ", s.DBQueries.mountsCreateTableSQL)
 		return err
@@ -118,12 +118,12 @@ func (s SQLVolumeDatabase) Disconnect() error {
 	}
 
 	glog.Info("Closing database: " + s.DBDataSource)
-	return s.sqlDB.Close()
+	return sqlDB.Close()
 }
 
 // VerifyOrCrash if the database connection is not properly configured
 func (s SQLVolumeDatabase) VerifyOrCrash() error {
-	if s.sqlDB == nil {
+	if sqlDB == nil {
 		return errors.New("Database is not connected!")
 	}
 
@@ -142,7 +142,7 @@ func (s SQLVolumeDatabase) Create(volumeName string, options map[string]string) 
 	}
 
 	// Begin transaction to the database
-	transaction, err := s.sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (s SQLVolumeDatabase) List() ([]*volume.Volume, error) {
 	}
 
 	// Query the database about the volumes
-	rows, err := s.sqlDB.Query(s.DBQueries.volumesGetNameAndMountpointListSQL)
+	rows, err := sqlDB.Query(s.DBQueries.volumesGetNameAndMountpointListSQL)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (s SQLVolumeDatabase) getVolumeByName(volumeName string) (*volume.Volume, i
 	}
 
 	// Prepare the query
-	preparedStatement, err := s.sqlDB.Prepare(s.DBQueries.volumesGetVolumeByNameSQL)
+	preparedStatement, err := sqlDB.Prepare(s.DBQueries.volumesGetVolumeByNameSQL)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -317,7 +317,7 @@ func (s SQLVolumeDatabase) Remove(volumeName string) error {
 	}
 
 	// Begin transaction to the database
-	transaction, err := s.sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
 		return err
 	}
@@ -365,7 +365,7 @@ func (s SQLVolumeDatabase) Mount(volumeName string, id string, mointpoint string
 	}
 
 	// Begin transaction to the database
-	transaction, err := s.sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
 		return err
 	}
@@ -428,7 +428,7 @@ func (s SQLVolumeDatabase) Unmount(volumeName string, id string) error {
 	}
 
 	// Begin transaction to the database
-	transaction, err := s.sqlDB.Begin()
+	transaction, err := sqlDB.Begin()
 	if err != nil {
 		return err
 	}
@@ -497,7 +497,7 @@ func (s SQLVolumeDatabase) listMounts(volumeName string) (map[string]int, int, e
 	}
 
 	// Prepare the query
-	preparedStatement, err := s.sqlDB.Prepare(s.DBQueries.mountsGetRequesterAndCountByVolumeIDListSQL)
+	preparedStatement, err := sqlDB.Prepare(s.DBQueries.mountsGetRequesterAndCountByVolumeIDListSQL)
 	if err != nil {
 		return nil, 0, err
 	}

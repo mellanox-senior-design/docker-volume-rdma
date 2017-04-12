@@ -14,15 +14,29 @@ GIT_BRANCH=$(
 	sed 's#[^a-z0-9._-]#-#'
 )
 
-set -e
+failures=0
+
+function failure() {
+	red "$@"
+	failures=$((failed + 1))
+}
 
 green Unit Tests
 if ! docker build --tag docker-volume-rdma:"$GIT_BRANCH" .; then
-	red 'Failed to run unit tests'
+	failure 'Failed to run unit tests'
 fi
 docker rmi docker-volume-rdma:"$GIT_BRANCH"
 
 green Benchmarks
-if ! ./benchmarking/test.sh; then
-	red 'Failed to run benchmarks'
-fi
+echo # make newline space
+for scenario in $(cd ./benchmarking; ls -d */ | grep -v '^scenarios/?$' | sed 's#/##'); do
+	echo # make space
+	green "Running Scenario: $scenario"
+	echo # make space
+	sleep 5
+	if ! ./benchmarking/test.sh "$scenario"; then
+		failure 'Failed to run benchmarks'
+	fi
+done
+
+exit $failures

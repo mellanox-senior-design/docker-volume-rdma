@@ -75,7 +75,7 @@ func main() {
 			defer driver.Disconnect()
 
 			glog.Info("Running! http://localhost:" + port)
-			err = handler.ServeTCP("test_volume", ":"+port, nil)
+			err = handler.ServeTCP("docker-volume-rdma", ":"+port, nil)
 		}
 	}
 
