@@ -75,7 +75,7 @@ func createMockVolumeDatabase(t *testing.T) (*sql.DB, sqlmock.Sqlmock, VolumeDat
 
 	// now we execute our method
 	volumeDatabase := NewSQLVolumeDatabase("mock", "mock", VolumeDatabaseQueries{})
-	volumeDatabase.sqlDB = db
+	sqlDB = db
 
 	return db, mock, volumeDatabase
 }
