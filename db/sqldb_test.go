@@ -130,7 +130,6 @@ func TestValidateOrCrash(t *testing.T) {
 }
 
 func TestCreate_trivial(t *testing.T) {
-	t.Parallel()
 	createSQL := `[INSERT INTO volumes(name) VALUES (?);]`
 
 	db, mock, volumeDatabase := createMockVolumeDatabase(t)
@@ -192,7 +191,6 @@ func TestCreate_failBegin(t *testing.T) {
 }
 
 func TestCreate_failPrepare(t *testing.T) {
-	t.Parallel()
 	createSQL := `[INSERT INTO volumes(name) VALUES (?);]`
 
 	db, mock, volumeDatabase := createMockVolumeDatabase(t)
@@ -218,7 +216,6 @@ func TestCreate_failPrepare(t *testing.T) {
 }
 
 func TestCreate_failExec(t *testing.T) {
-	t.Parallel()
 	createSQL := `[INSERT INTO volumes(name) VALUES (?);]`
 
 	db, mock, volumeDatabase := createMockVolumeDatabase(t)
