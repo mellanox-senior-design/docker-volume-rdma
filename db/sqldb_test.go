@@ -124,7 +124,7 @@ func TestValidateOrCrash(t *testing.T) {
 	}
 	for _, test := range tests {
 		if err := test.f(); err == nil {
-			t.Errorf("%s should have retuned an error.", test.name)
+			t.Errorf("%s should have returned an error.", test.name)
 		}
 	}
 }

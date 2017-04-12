@@ -37,13 +37,6 @@ func TestSCDisconnect(t *testing.T) {
 func TestSCMount(t *testing.T) {
 	t.Parallel()
 	sc := NewOnDiskStorageController("test/controlla")
-	/*
-		mountedPath, err := sc.Mount("")
-
-		if err == nil {
-			t.Fatal("A valid mountedPath name should be provided to storage controller")
-		}
-	*/
 
 	mountedPath, err := sc.Mount("formulavol1")
 
