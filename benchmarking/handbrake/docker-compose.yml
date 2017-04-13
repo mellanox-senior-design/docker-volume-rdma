@@ -1,0 +1,6 @@
+version: "3"
+services:
+  bench:
+    build: .
+    volumes:
+     - /tmp/bench_results:/tmp/bench_results

@@ -20,7 +20,7 @@ function dcDown() {
 function dcUp() {
     testOut "Bringing up Test Fixture [$1]..."
     if [ -f $2 ]; then
-        docker-compose up --abort-on-container-exit --force-recreate $file
+        docker-compose -f docker-compose.yml -f $2 up --abort-on-container-exit --force-recreate
     else
         testWarnOut "File, $2, does not exist. Skipping..."
     fi
@@ -50,16 +50,20 @@ function dcBuild() {
 }
 
 function dcRun() {
-    dcUp "No Volumes" "docker-compose.yml"
-    dcCollect "bench_results.json"
-    dcDown
+     dcUp "No Volumes" "docker-compose.yml"
+     dcCollect "bench_results.json"
+     dcDown
 
-    dcUp "Local Disk Volume" "docker-compose.disk.yml"
-    dcCollect "bench_results.disk.json"
-    dcDown
+     dcUp "Local Disk Volume" "docker-compose.disk.yml"
+     dcCollect "bench_results.disk.json"
+     dcDown
 
-    dcUp "Remote DMA Volume" "docker-compose.rdma.yml"
-    dcCollect "bench_results.rdma.json"
+     dcUp "Remote TCP Volume" "docker-compose.guss.yml"
+     dcCollect "bench_results.guss.json"
+     dcDown
+
+    dcUp "Remote DMA Volume" "docker-compose.mellanox.yml"
+    dcCollect "bench_results.mellanox.json"
     dcDown
 }
 

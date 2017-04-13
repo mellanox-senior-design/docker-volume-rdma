@@ -75,7 +75,7 @@ func main() {
 			defer driver.Disconnect()
 
 			glog.Info("Running! http://localhost:" + port)
-			err = handler.ServeTCP("test_volume", ":"+port, nil)
+			err = handler.ServeTCP("docker-volume-rdma", ":"+port, nil)
 		}
 	}
 
@@ -118,7 +118,7 @@ func getDatabaseConnection() (db.VolumeDatabase, error) {
 
 	case "mysql":
 		validateDatabaseFlags(false, false, true, true, true, true)
-		return db.NewMySQLVolumeDatabase(volumeDatabaseHost, volumeDatabaseUsername, volumeDatabasePassword, volumeDatabaseSchema), nil
+		return db.NewMySQLVolumeDatabase(volumeDatabaseHost, volumeDatabaseUsername, volumeDatabasePassword, volumeDatabaseSchema)
 
 	default:
 		return nil, errors.New("unsupported database, please choose sqlite, mysql, or in-memory")

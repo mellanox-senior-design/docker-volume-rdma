@@ -92,6 +92,7 @@ func (s SQLVolumeDatabase) Connect() error {
 	}
 
 	// Create the volumes table if it do not exist
+	glog.Info(s.DBQueries.volumesCreateTableSQL)
 	_, err = sqlDB.Exec(s.DBQueries.volumesCreateTableSQL)
 	if err != nil {
 		glog.Error(err, ": ", s.DBQueries.volumesCreateTableSQL)
@@ -99,6 +100,7 @@ func (s SQLVolumeDatabase) Connect() error {
 	}
 
 	// Create mount table, this will hold all of the ids that are requesting a volume
+	glog.Info(s.DBQueries.mountsCreateTableSQL)
 	_, err = sqlDB.Exec(s.DBQueries.mountsCreateTableSQL)
 	if err != nil {
 		glog.Error(err, ": ", s.DBQueries.mountsCreateTableSQL)
@@ -111,20 +113,28 @@ func (s SQLVolumeDatabase) Connect() error {
 
 // Disconnect from database
 func (s SQLVolumeDatabase) Disconnect() error {
-	glog.Info("Closing database file: " + s.DBDataSource)
+	if err := s.VerifyOrCrash(); err != nil {
+		return err
+	}
+
+	glog.Info("Closing database: " + s.DBDataSource)
 	return sqlDB.Close()
 }
 
 // VerifyOrCrash if the database connection is not properly configured
-func (s SQLVolumeDatabase) VerifyOrCrash() {
+func (s SQLVolumeDatabase) VerifyOrCrash() error {
 	if sqlDB == nil {
-		glog.Fatal("Database is not connected!")
+		return errors.New("Database is not connected!")
 	}
+
+	return nil
 }
 
 // Create volume
 func (s SQLVolumeDatabase) Create(volumeName string, options map[string]string) error {
-	s.VerifyOrCrash()
+	if err := s.VerifyOrCrash(); err != nil {
+		return err
+	}
 
 	// Verify input.
 	if volumeName == "" {
@@ -158,7 +168,9 @@ func (s SQLVolumeDatabase) Create(volumeName string, options map[string]string) 
 
 // List all volumes
 func (s SQLVolumeDatabase) List() ([]*volume.Volume, error) {
-	s.VerifyOrCrash()
+	if err := s.VerifyOrCrash(); err != nil {
+		return nil, err
+	}
 
 	// Query the database about the volumes
 	rows, err := sqlDB.Query(s.DBQueries.volumesGetNameAndMountpointListSQL)
@@ -217,7 +229,9 @@ func (s SQLVolumeDatabase) getVolumeIDByName(volumeName string) (int, error) {
 }
 
 func (s SQLVolumeDatabase) getVolumeByName(volumeName string) (*volume.Volume, int, error) {
-	s.VerifyOrCrash()
+	if err := s.VerifyOrCrash(); err != nil {
+		return nil, 0, err
+	}
 
 	// Prepare the query
 	preparedStatement, err := sqlDB.Prepare(s.DBQueries.volumesGetVolumeByNameSQL)
