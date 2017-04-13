@@ -3,4 +3,7 @@ services:
   bench:
     volumes:
      - /tmp/bench_results:/tmp/bench_results
-     - /mnt/glusterfs/guss/handbrake:/data
+     - tcp_volume:/data
+volumes:
+  tcp_volume:
+    driver: tcp

@@ -3,4 +3,7 @@ services:
   bench:
     volumes:
      - /tmp/bench_results:/tmp/bench_results
-     - /mnt/glusterfs/mellanox/bonnie:/test
+     - rdma_volume:/test
+volumes:
+  rdma_volume:
+    driver: rdma
