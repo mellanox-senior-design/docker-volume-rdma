@@ -118,12 +118,12 @@ func (d OnDiskStorageController) Delete(volumeName string) error {
 	// If there is an unmounted volume, return it.
 	_, err := os.Open(pathUnmounted)
 	if err == nil {
-		return os.Remove(pathUnmounted)
+		return os.RemoveAll(pathUnmounted)
 	}
 
 	_, err = os.Open(pathMounted)
 	if err == nil {
-		return os.Remove(pathMounted)
+		return os.RemoveAll(pathMounted)
 	}
 
 	return nil
