@@ -14,13 +14,13 @@ function testErrorOut() {
 
 function dcDown() {
     testOut "Stopping..."
-    docker-compose -f docker-compose.yml -f $2 down -v
+    docker-compose -f docker-compose.yml -f "$1" down -v
 }
 
 function dcUp() {
     testOut "Bringing up Test Fixture [$1]..."
-    if [ -f $2 ]; then
-        docker-compose -f docker-compose.yml -f $2 up --abort-on-container-exit --force-recreate
+    if [ -f "$2" ]; then
+        docker-compose -f docker-compose.yml -f "$2" up --abort-on-container-exit --force-recreate
     else
         testWarnOut "File, $2, does not exist. Skipping..."
     fi
