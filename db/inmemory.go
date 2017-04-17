@@ -109,7 +109,6 @@ func (i InMemoryVolumeDatabase) Remove(volumeName string) error {
 	if !exists {
 		return errors.New("volume does not exit")
 	}
-	delete(i.volumes, volumeName)
 
 	_, exists = i.mounts[volumeName]
 	if exists {
@@ -123,6 +122,7 @@ func (i InMemoryVolumeDatabase) Remove(volumeName string) error {
 		}
 	}
 
+	delete(i.volumes, volumeName)
 	delete(i.mounts, volumeName)
 	return nil
 }
