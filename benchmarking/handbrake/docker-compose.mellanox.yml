@@ -3,4 +3,7 @@ services:
   bench:
     volumes:
      - /tmp/bench_results:/tmp/bench_results
-     - /mnt/glusterfs/mellanox/handbrake:/data
+     - rdma_volume:/data
+volumes:
+  rdma_volume:
+    driver: rdma

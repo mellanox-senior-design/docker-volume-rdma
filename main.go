@@ -16,6 +16,9 @@ import (
 	"github.com/mellanox-senior-design/docker-volume-rdma/drivers"
 )
 
+// Name of the plugin for use in Docker CLI
+var pluginName string
+
 // Port to launch service on.
 var httpPort int
 
@@ -33,6 +36,7 @@ var storageControllerPath string
 
 func init() {
 	// Configure application flags.
+	flag.StringVar(&pluginName, "name", "docker-volume-rdma", "name of the plugin used in the Docker CLI")
 	flag.IntVar(&httpPort, "port", 8080, "tcp/ip port to serve volume driver on")
 
 	// Volume Database Flags
@@ -75,7 +79,7 @@ func main() {
 			defer driver.Disconnect()
 
 			glog.Info("Running! http://localhost:" + port)
-			err = handler.ServeTCP("docker-volume-rdma", ":"+port, nil)
+			err = handler.ServeTCP(pluginName, ":"+port, nil)
 		}
 	}
 
