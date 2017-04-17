@@ -28,8 +28,10 @@ function dcUp() {
 
 function dcCollect() {
     testOut "Collecting..."
-    mv /tmp/bench_results/result.json "$1"
-    testOut "$(cat $1)"
+    if [[ -f /tmp/bench_results/result.json ]]; then
+        mv /tmp/bench_results/result.json "$1"
+        testOut "$(cat $1)"
+    fi
 }
 
 function dcCollectAll() {
@@ -38,7 +40,9 @@ function dcCollectAll() {
     if [ "$?" == "0" ]; then
         rm **/bench_results*.json
         mkdir -p results
-        mv /tmp/bench_results/result.json results/bench_final_results.$(date +%s).json
+        if [[ -f /tmp/bench_results/result.json ]]; then
+            mv /tmp/bench_results/result.json results/bench_final_results.$(date +%s).json
+        fi
     else
         testErrorOut "Generate report failed"
         exit 1
@@ -88,6 +92,7 @@ function dcGo() {
 
 cd "$(dirname $0)"
 
+mkdir -p /tmp/bench_results
 # Iterate over tests
 ran="0"
 for i in $(ls -d */ | grep -v results | grep ".*$1.*"); do
