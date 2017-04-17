@@ -2,4 +2,7 @@ version: "3"
 services:
   mysql:
     volumes:
-     - /mnt/glusterfs/mellanox/mysql:/var/lib/mysql
+     - rdma_volume:/var/lib/mysql
+volumes:
+  rdma_volume:
+    driver: rdma

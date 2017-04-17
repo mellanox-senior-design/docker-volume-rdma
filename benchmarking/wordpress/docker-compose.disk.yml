@@ -2,7 +2,7 @@ version: "3"
 services:
   mysql:
     volumes:
-     - data-volume:/var/lib/mysql
+     - disk_volume:/var/lib/mysql
 
 volumes:
-  data-volume:
+  disk_volume:

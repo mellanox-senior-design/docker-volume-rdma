@@ -14,13 +14,13 @@ function testErrorOut() {
 
 function dcDown() {
     testOut "Stopping..."
-    docker-compose down -v
+    docker-compose -f docker-compose.yml -f "$1" down -v
 }
 
 function dcUp() {
     testOut "Bringing up Test Fixture [$1]..."
-    if [ -f $2 ]; then
-        docker-compose -f docker-compose.yml -f $2 up --abort-on-container-exit --force-recreate
+    if [ -f "$2" ]; then
+        docker-compose -f docker-compose.yml -f "$2" up --abort-on-container-exit --force-recreate
     else
         testWarnOut "File, $2, does not exist. Skipping..."
     fi
@@ -54,21 +54,21 @@ function dcBuild() {
 }
 
 function dcRun() {
-     dcUp "No Volumes" "docker-compose.yml"
-     dcCollect "bench_results.json"
-     dcDown
+    dcUp "No Volumes" "docker-compose.yml"
+    dcCollect "bench_results.json"
+    dcDown "docker-compose.yml"
 
-     dcUp "Local Disk Volume" "docker-compose.disk.yml"
-     dcCollect "bench_results.disk.json"
-     dcDown
+    dcUp "Local Disk Volume" "docker-compose.disk.yml"
+    dcCollect "bench_results.disk.json"
+    dcDown "docker-compose.disk.yml"
 
-     dcUp "Remote TCP Volume" "docker-compose.guss.yml"
-     dcCollect "bench_results.guss.json"
-     dcDown
+    dcUp "Remote TCP Volume" "docker-compose.guss.yml"
+    dcCollect "bench_results.guss.json"
+    dcDown "docker-compose.guss.yml"
 
     dcUp "Remote DMA Volume" "docker-compose.mellanox.yml"
     dcCollect "bench_results.mellanox.json"
-    dcDown
+    dcDown "docker-compose.mellanox.yml"
 }
 
 function dcVerify() {
@@ -86,7 +86,6 @@ function dcGo() {
 
     dcBuild
     dcRun
-    dcDown
 
     testOut "benchmark Finished."
 }
