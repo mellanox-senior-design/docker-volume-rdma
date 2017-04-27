@@ -72,14 +72,14 @@ func TestMain(t *testing.T) {
 	// Start main!
 	go main()
 
-	// Create json for request
-	json, err := json.Marshal(volume.Request{})
+	// Create json for request - local variable json masks the global symbol json referring to the JSON module
+	jsn, err := json.Marshal(volume.Request{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Create request to server.
-	body := bytes.NewBuffer(json)
+	body := bytes.NewBuffer(jsn)
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", "http://localhost:"+httpPort+"/VolumeDriver.Capabilities", body)
 	if err != nil {
@@ -88,9 +88,28 @@ func TestMain(t *testing.T) {
 
 	// Fetch Request
 	req.Header.Add("Content-Type", "application/json")
-	_, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatal("Failed to connect to server! ", err)
+	}
+
+	if resp == nil {
+		t.Fatal("resp is nil!")
+	}
+	if resp.Body == nil {
+		t.Fatal("resp.Body is nil!")
+	}
+	defer resp.Body.Close()
+
+	var r volume.Response
+
+	err = json.NewDecoder(resp.Body).Decode(&r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r.Capabilities.Scope != "local" {
+		t.Fatal("Scope should be local!")
 	}
 }
 

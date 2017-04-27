@@ -168,7 +168,7 @@ func TestGet(t *testing.T) {
 	secondReq := volume.Request{Name: "notCreated"}
 	secondRes := rdmaVolDriver.Get(secondReq)
 	if len(secondRes.Err) == 0 {
-		t.Error("There should have been an error when Getting a volume that has not been created")
+		t.Error("There should have been an error when getting a volume that has not been created")
 	}
 
 }
@@ -292,7 +292,7 @@ func TestMount(t *testing.T) {
 	response = rdmaVolDriver.Mount(mountRequest)
 
 	if len(response.Err) == 0 {
-		t.Error("We should not be able to mount and uncreated volume")
+		t.Error("We should not be able to mount an uncreated volume")
 	}
 
 }
