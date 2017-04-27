@@ -18,7 +18,7 @@ func TestCreate(t *testing.T) {
 	t.Logf("POST /VolumeDriver.Create")
 
 	// Create json for request - local variable json masks the global symbol json referring to the JSON module
-	t.Logf("json.Marshal(volume.Request{Name: \"\", Options: map[string]string{}})")
+	t.Logf("json.Marshal(volume.Request{Name: , Options: map[string]string{}})")
 	jsn, err := json.Marshal(volume.Request{
 		Name:    "",
 		Options: map[string]string{},
@@ -264,7 +264,7 @@ func TestGet(t *testing.T) {
 	t.Logf("POST /VolumeDriver.Get")
 
 	// Create json for request - local variable json masks the global symbol json referring to the JSON module
-	t.Logf("json.Marshal(volume.Request{Name: \"\", Options: map[string]string{}})")
+	t.Logf("json.Marshal(volume.Request{Name: , Options: map[string]string{}})")
 	jsn, err := json.Marshal(volume.Request{
 		Name:    "",
 		Options: map[string]string{},
@@ -861,7 +861,7 @@ func TestRemove(t *testing.T) {
 	t.Logf("POST /VolumeDriver.Remove")
 
 	// Create json for request - local variable json masks the global symbol json referring to the JSON module
-	t.Logf("json.Marshal(volume.Request{Name: \"\", Options: map[string]string{}})")
+	t.Logf("json.Marshal(volume.Request{Name: , Options: map[string]string{}})")
 	jsn, err := json.Marshal(volume.Request{
 		Name:    "",
 		Options: map[string]string{},
@@ -1008,8 +1008,7 @@ func TestRemove(t *testing.T) {
 	resp.Body.Close()
 
 	/**************************REMOVE********************************/
-	// Get a Docker approved random name
-	volumeName2 := namesgenerator.GetRandomName(2)
+	volumeName2 := "nonexistent_volume"
 
 	// Remove (Delete) a paricular volume.
 	t.Logf("POST /VolumeDriver.Remove")
@@ -1051,7 +1050,153 @@ func TestRemove(t *testing.T) {
 	}
 
 	if r.Err == "" {
-		t.Fatal("Error should occur when removing a nonexistant volume")
+		t.Fatal("Error should occur when removing a nonexistent volume")
+	}
+
+	resp.Body.Close()
+
+	/**************************MOUNT********************************/
+	// Mount a paricular volume to the host.
+	t.Logf("POST /VolumeDriver.Mount")
+
+	// Create json for request - local variable json masks the global symbol json referring to the JSON module
+	t.Logf("json.Marshal(volume.MountRequest{Name: %s, ID: 42})", volumeName0)
+	jsn, err = json.Marshal(volume.MountRequest{
+		Name: volumeName0,
+		ID:   "42",
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create request to server
+	body = bytes.NewBuffer(jsn)
+	client = &http.Client{}
+	req, err = http.NewRequest("POST", "http://plugin:8080/VolumeDriver.Mount", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Fetch request
+	req.Header.Add("Content-Type", "application/json")
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatal("Failed to connect to server! ", err)
+	}
+
+	if resp == nil {
+		t.Fatal("resp is nil!")
+	}
+	if resp.Body == nil {
+		t.Fatal("resp.Body is nil!")
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r.Err != "" {
+		t.Fatal("Error occured while mounting:", volumeName0, r.Err)
+	}
+
+	if r.Mountpoint != "/etc/docker/mounts/"+volumeName0 {
+		t.Fatal("Expected Mountpoint: /etc/docker/mounts/" + volumeName0 + " Actual: " + r.Mountpoint)
+	}
+
+	resp.Body.Close()
+
+	// /**************************REMOVE********************************/
+	// // Remove (Delete) a paricular volume.
+	// t.Logf("POST /VolumeDriver.Remove")
+	//
+	// // Create json for request - local variable json masks the global symbol json referring to the JSON module
+	// t.Logf("json.Marshal(volume.Request{Name: %s})", volumeName0)
+	// jsn, err = json.Marshal(volume.Request{
+	// 	Name: volumeName0,
+	// })
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	//
+	// // Create request for server
+	// body = bytes.NewBuffer(jsn)
+	// client = &http.Client{}
+	// req, err = http.NewRequest("POST", "http://plugin:8080/VolumeDriver.Remove", body)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	//
+	// // Fetch request
+	// req.Header.Add("Content-Type", "application/json")
+	// resp, err = client.Do(req)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	//
+	// if resp == nil {
+	// 	t.Fatal("resp is nil!")
+	// }
+	// if resp.Body == nil {
+	// 	t.Fatal("resp.Body is nil!")
+	// }
+	//
+	// err = json.NewDecoder(resp.Body).Decode(&r)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	//
+	// if r.Err == "" {
+	// 	t.Fatal("Error should occur when attempting to remove a mounted volume", r.Err)
+	// }
+	//
+	// resp.Body.Close()
+
+	/**************************UNMOUNT********************************/
+	// Unmount a paricular volume from host (if no other mount requests active).
+	t.Logf("POST /VolumeDriver.Unmount")
+
+	// Create json for request - local variable json masks the global symbol json referring to the JSON module
+	t.Logf("json.Marshal(volume.UnmountRequest{Name: %s, ID: 42})", volumeName0)
+	jsn, err = json.Marshal(volume.UnmountRequest{
+		Name: volumeName0,
+		ID:   "42",
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create request to server
+	body = bytes.NewBuffer(jsn)
+	client = &http.Client{}
+	req, err = http.NewRequest("POST", "http://plugin:8080/VolumeDriver.Unmount", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Fetch request
+	req.Header.Add("Content-Type", "application/json")
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatal("Failed to connect to server! ", err)
+	}
+
+	if resp == nil {
+		t.Fatal("resp is nil!")
+	}
+	if resp.Body == nil {
+		t.Fatal("resp.Body is nil!")
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r.Err != "" {
+		t.Fatal("Error occured while unmounting:", volumeName0, r.Err)
 	}
 
 	resp.Body.Close()
@@ -1149,7 +1294,7 @@ func TestRemove(t *testing.T) {
 
 	resp.Body.Close()
 
-	/**************************GET volumeName1********************************/
+	/**************************GET********************************/
 	// Get info relating to a paricular volume.
 	t.Logf("POST /VolumeDriver.Get")
 
@@ -1393,7 +1538,7 @@ func TestPath(t *testing.T) {
 	}
 
 	if r.Mountpoint != "" {
-		t.Fatal("Mountpoint should be: \"\" since volume hasn't been mounted")
+		t.Fatal("Mountpoint should not exist since volume has not been mounted")
 	}
 
 	resp.Body.Close()
@@ -1403,7 +1548,7 @@ func TestPath(t *testing.T) {
 	t.Logf("POST /VolumeDriver.Mount")
 
 	// Create json for request - local variable json masks the global symbol json referring to the JSON module
-	t.Logf("json.Marshal(volume.MountRequest{Name: %s, ID: \"42\"})", volumeName)
+	t.Logf("json.Marshal(volume.MountRequest{Name: %s, ID: 42})", volumeName)
 	jsn, err = json.Marshal(volume.MountRequest{
 		Name: volumeName,
 		ID:   "42",
@@ -1506,7 +1651,7 @@ func TestPath(t *testing.T) {
 	t.Logf("POST /VolumeDriver.Unmount")
 
 	// Create json for request - local variable json masks the global symbol json referring to the JSON module
-	t.Logf("json.Marshal(volume.UnmountRequest{Name: %s, ID: \"42\"})", volumeName)
+	t.Logf("json.Marshal(volume.UnmountRequest{Name: %s, ID: 42})", volumeName)
 	jsn, err = json.Marshal(volume.UnmountRequest{
 		Name: volumeName,
 		ID:   "42",
